@@ -10,6 +10,7 @@ import Foundation
 struct Player {
     var position: CGPoint = CGPoint(x: 200, y: 400)
     var size: CGFloat = CGFloat(30)
-    var lifes = 3
+    var speed: CGFloat = CGFloat(5)
+    var lifes: Int = 3
     
 }

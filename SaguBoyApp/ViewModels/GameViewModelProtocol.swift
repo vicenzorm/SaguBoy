@@ -9,7 +9,6 @@ import Foundation
 
 protocol GameViewModelProtocol {
     var gameOver: Bool { get set }
-    var gameTimer: Timer? { get }
     var enemies: [Enemy] { get }
     
     func startGame()

@@ -10,25 +10,45 @@ struct GameView: View {
     var viewModel = GameViewModel()
     
     var body: some View {
-        ZStack {
-            Color.black.edgesIgnoringSafeArea(.all)
-            
-            Circle()
-                .fill(Color.green)
-                .frame(width: viewModel.player.size, height: viewModel.player.size)
-                .position(viewModel.player.position)
-            
-            ForEach(viewModel.enemies) { enemy in
+        VStack (spacing: 0) {
+            ZStack {
+                Color.black.edgesIgnoringSafeArea(.all)
+                
                 Circle()
-                    .fill(Color.red)
-                    .frame(width: enemy.size, height: enemy.size)
-                    .position(enemy.position)
+                    .fill(Color.green)
+                    .frame(width: viewModel.player.size, height: viewModel.player.size)
+                    .position(viewModel.player.position)
+                
+                
+                ForEach(viewModel.enemies) { enemy in
+                    Circle()
+                        .fill(Color.red)
+                        .frame(width: enemy.size, height: enemy.size)
+                        .position(enemy.position)
+                }
+                
+                
             }
+            .frame(maxWidth: .infinity)
+            .frame(height: 449)
             
+            VStack {
+                Spacer()
+                HStack {
+                    DPadView { dir, isPressed in
+                        viewModel.setDirection(dir, active: isPressed)
+                    }
+                    .padding(.leading, 16)
+                    Spacer()
+                }
+                .padding(.bottom, 16)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: 444)
         .onAppear {
             self.viewModel.startGame()
+        }
+        .onDisappear {
+            self.viewModel.stopGame()
         }
         
         Spacer()
