@@ -56,7 +56,8 @@ struct GameView: View {
                     ControllersView(
                         onDirection: { dir, isPressed in viewModel.setDirection(dir, active: isPressed) },
                         onAChanged: { },
-                        onBChanged: { }
+                        onBChanged: { },
+                        onStartClicked: { }
                     )
                     .padding(.bottom, 16)
                     Spacer()
