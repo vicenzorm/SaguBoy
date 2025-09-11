@@ -8,40 +8,70 @@
 import SwiftUI
 
 struct ControllersView: View {
+    // Callbacks
     let onDirection: (Direction, Bool) -> Void
-    
     var onAChanged: () -> Void
     var onBChanged: () -> Void
-    
     var onStartClicked: () -> Void
-    
+
+    @State private var currentDirection: Direction? = nil
+
+    private let dpadSize: CGFloat = 136
+    private let deadZone: CGFloat = 18 
+
     var body: some View {
         VStack(spacing: 39) {
             HStack {
+
                 ZStack {
-                    Image(.dpad)
-                        .frame(width: 136, height: 136)
-                        .scaledToFill()
-                    VStack(spacing: 0) {
-                        directionInvisibleButton(dir: .up)
-                        HStack(spacing: 2) {
-                            directionInvisibleButton(dir: .left)
-                            Circle()
-                                .frame(width: 45, height: 45)
-                                .hidden()
-                            directionInvisibleButton(dir: .right)
-                        }
-                        directionInvisibleButton(dir: .down)
+                    GeometryReader { geo in
+                        let size = geo.size
+                        let center = CGPoint(x: size.width/2, y: size.height/2)
+
+                        Image(.dpad)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: size.width, height: size.height)
+                            .contentShape(Rectangle())
+                            .gesture(
+                                DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                                    .onChanged { value in
+                                        if let newDir = direction(from: value.location,
+                                                                 center: center,
+                                                                 deadZone: deadZone) {
+                                            if newDir != currentDirection {
+                                                if let cur = currentDirection { onDirection(cur, false) }
+                                                currentDirection = newDir
+                                                onDirection(newDir, true)
+                                            }
+                                        } else {
+                                            
+                                            if let cur = currentDirection {
+                                                currentDirection = nil
+                                                onDirection(cur, false)
+                                            }
+                                        }
+                                    }
+                                    .onEnded { _ in
+                                        if let cur = currentDirection {
+                                            currentDirection = nil
+                                            onDirection(cur, false)
+                                        }
+                                    }
+                            )
                     }
                 }
+                .frame(width: dpadSize, height: dpadSize)
                 .padding(8)
+                .accessibilityLabel("Direcional")
+
                 Spacer()
+
                 ZStack {
                     RoundedRectangle(cornerRadius: 27)
-                        .stroke(Color.gray,lineWidth: 3)
+                        .stroke(Color.gray, lineWidth: 3)
                         .frame(width: 188, height: 178)
-                        .cornerRadius(27)
-//                        .background(.buttonsStack)
+
                     HStack {
                         VStack {
                             Spacer()
@@ -52,8 +82,10 @@ struct ControllersView: View {
                                     .resizable()
                                     .frame(width: 71, height: 71)
                                     .scaledToFill()
+                                    .accessibilityLabel("Botão A")
                             }
                         }
+
                         VStack {
                             Button {
                                 onBChanged()
@@ -62,6 +94,7 @@ struct ControllersView: View {
                                     .resizable()
                                     .frame(width: 71, height: 71)
                                     .scaledToFill()
+                                    .accessibilityLabel("Botão B")
                             }
                             Spacer()
                         }
@@ -69,7 +102,7 @@ struct ControllersView: View {
                     .frame(width: 158, height: 148)
                 }
             }
-            
+
             Button {
                 onStartClicked()
             } label: {
@@ -77,21 +110,33 @@ struct ControllersView: View {
                     .resizable()
                     .frame(width: 42, height: 19)
                     .scaledToFill()
+                    .accessibilityLabel("Start")
             }
         }
         .padding(.horizontal, 8)
         .padding(.bottom, 20)
     }
-    
-    private func directionInvisibleButton(dir: Direction) -> some View {
-        Button(action: {}) {
-            RoundedRectangle(cornerRadius: 0)
-                .frame(width: 45, height: 45)
-                .opacity(1/1000000)
+
+
+    /// Converte a posição do dedo em uma direção cardinal com zona morta.
+    private func direction(from point: CGPoint,
+                           center: CGPoint,
+                           deadZone: CGFloat) -> Direction? {
+        let dx = point.x - center.x
+        let dy = point.y - center.y
+        let dist = sqrt(dx*dx + dy*dy)
+
+        guard dist >= deadZone else { return nil } // zona morta central
+
+        // Eixo dominante: horizontal vs vertical
+        if abs(dx) > abs(dy) {
+            return dx > 0 ? .right : .left
+        } else {
+            return dy > 0 ? .down : .up
         }
-        .buttonStyle(HoldButtonStyle { isPressed in onDirection(dir, isPressed) })
     }
 }
+
 
 struct HoldButtonStyle: ButtonStyle {
     var onChanged: (Bool) -> Void
