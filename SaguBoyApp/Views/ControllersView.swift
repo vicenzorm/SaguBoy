@@ -12,35 +12,29 @@ struct ControllersView: View {
     var onAChanged: () -> Void
     var onBChanged: () -> Void
     
-    private func key(_ systemName: String, dir: Direction) -> some View {
+    private func key(_ name: String, dir: Direction) -> some View {
         Button(action: {}) {
-            Image(systemName: systemName)
-                .font(.title2.weight(.bold))
-                .frame(width: 56, height: 56)
-                .background(Circle().fill(.white.opacity(0.08)))
-                .overlay(Circle().stroke(.white.opacity(0.25), lineWidth: 1))
-                .contentShape(Circle())
+            Image(name)
+                .frame(width: 45, height: 58)
+                .scaledToFill()
         }
         .buttonStyle(HoldButtonStyle { isPressed in onDirection(dir, isPressed) })
     }
     
     var body: some View {
         HStack {
-            VStack(spacing: 8) {
-                key("arrowtriangle.up.fill",    dir: .up)
-                HStack(spacing: 8) {
-                    key("arrowtriangle.left.fill",  dir: .left)
-                    Circle().fill(.clear).frame(width: 40, height: 40) // dead zone
-                    key("arrowtriangle.right.fill", dir: .right)
+            VStack(spacing: -8) {
+                key("upButton",    dir: .up)
+                HStack(spacing: 2) {
+                    key("leftButton",  dir: .left)
+                    Circle()
+                        .frame(width: 45, height: 45)
+                        .hidden()
+                    key("rightButton", dir: .right)
                 }
-                key("arrowtriangle.down.fill",  dir: .down)
+                key("downButton",  dir: .down)
             }
             .padding(8)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(.black.opacity(0.35))
-                    .blur(radius: 0.5)
-            )
             Spacer()
             Buttons {
                 onAChanged()
@@ -49,8 +43,8 @@ struct ControllersView: View {
             }
 
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 8)
+        .padding(.bottom, 79)
     }
 }
 
@@ -72,24 +66,28 @@ struct Buttons: View {
             RoundedRectangle(cornerRadius: 27)
                 .stroke(Color.gray,lineWidth: 3)
                 .frame(width: 188, height: 178)
+                .cornerRadius(27)
+                .background(.buttonsStack)
             HStack {
                 VStack {
                     Spacer()
                     Button {
                         onAChanged()
                     } label: {
-                        Circle()
-                            .fill(Color.red)
+                        Image(.redButton)
+                            .resizable()
                             .frame(width: 71, height: 71)
+                            .scaledToFill()
                     }
                 }
                 VStack {
                     Button {
                         onBChanged()
                     } label: {
-                        Circle()
-                            .fill(Color.yellow)
+                        Image(.yellowbutton)
+                            .resizable()
                             .frame(width: 71, height: 71)
+                            .scaledToFill()
                     }
                     Spacer()
                 }
@@ -98,6 +96,17 @@ struct Buttons: View {
         }
     }
 }
+
+
+struct StartButton: View {
+    var body: some View {
+        Image(.startButton)
+            .resizable()
+            .frame(width: 42, height: 19)
+            .scaledToFill()
+    }
+}
+
 
 #Preview {
 }
