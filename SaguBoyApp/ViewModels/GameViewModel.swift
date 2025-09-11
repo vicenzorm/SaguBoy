@@ -15,33 +15,40 @@ class GameViewModel: GameViewModelProtocol {
     var enemies: [Enemy] = []
     var player = Player()
     
-    private var enemyTimer: Timer?
+    private var enemySpawnTimer: Timer?
+    private var enemyMovementTimer: Timer?
     private var moveTimer: Timer?
     
     var activeDirections = Set<Direction>()
     var playAreaSize: CGSize = .init(width: 390, height: 449)
     
     func startGame() {
-        //      spawnEnemy()
-        //      moveEnemies()
-        //      checkCollision()
-        
         stopGame()
-        startEnemyLoop()
+        startEnemySpawnLoop()
         startMoveLoop()
+        startEnemyMovement()
     }
     
     func stopGame() {
-        enemyTimer?.invalidate()
+        enemySpawnTimer?.invalidate()
         moveTimer?.invalidate()
-        enemyTimer = nil
+        enemyMovementTimer?.invalidate()
+        
+        enemySpawnTimer = nil
         moveTimer = nil
+        enemyMovementTimer = nil
     }
     
-    func startEnemyLoop() {
-        enemyTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
+    func startEnemySpawnLoop() {
+        enemySpawnTimer = Timer.scheduledTimer(withTimeInterval: 1.0/2.0, repeats: true) { [weak self] _ in
             guard let self else { return }
             self.spawnEnemy()
+        }
+    }
+    
+    func startEnemyMovement() {
+        enemyMovementTimer = Timer.scheduledTimer(withTimeInterval: 1.0/10.0, repeats: true) { [weak self] _ in
+            guard let self else { return }
             self.moveEnemies()
         }
     }
