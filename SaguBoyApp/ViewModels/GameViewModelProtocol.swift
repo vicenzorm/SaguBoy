@@ -8,13 +8,13 @@
 import Foundation
 
 protocol GameViewModelProtocol {
-    var gameOver: Bool { get set }
-    var enemies: [Enemy] { get }
-    
-    func startGame()
-    func spawnEnemy()
-    func moveEnemies()
-    func checkCollision()
-    func resetGame()
+//    var gameOver: Bool { get set }
+//    var enemies: [Enemy] { get }
+//    
+//    func startGame()
+//    func spawnEnemy()
+//    func moveEnemies()
+//    func checkCollision()
+//    func resetGame()
     
 }

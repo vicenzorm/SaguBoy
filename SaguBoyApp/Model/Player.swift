@@ -8,9 +8,11 @@
 import Foundation
 
 struct Player {
-    var position: CGPoint = CGPoint(x: 200, y: 400)
-    var size: CGFloat = CGFloat(30)
-    var speed: CGFloat = CGFloat(5)
+    var position: CGPoint = CGPoint(x: 195, y: 359)
+    var size: CGFloat = 30
+    var speed: CGFloat = 180
+    
+    var maxLifes: Int = 3
     var lifes: Int = 3
     
 }
