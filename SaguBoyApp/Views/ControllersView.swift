@@ -72,7 +72,6 @@ struct Buttons: View {
             RoundedRectangle(cornerRadius: 27)
                 .stroke(Color.gray,lineWidth: 3)
                 .frame(width: 188, height: 178)
-            
             HStack {
                 VStack {
                     Spacer()
@@ -94,9 +93,6 @@ struct Buttons: View {
                     }
                     Spacer()
                 }
-                
-                
-                
             }
             .frame(width: 158, height: 148)
         }
