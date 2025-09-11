@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "Ellipse 9.png",
+      "filename" : "D-Pad.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "Ellipse 9@2x.png",
+      "filename" : "D-Pad@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "Ellipse 9@3x.png",
+      "filename" : "D-Pad@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
