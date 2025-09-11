@@ -35,10 +35,16 @@ struct GameView: View {
             VStack {
                 Spacer()
                 HStack {
-                    DPadView { dir, isPressed in
-                        viewModel.setDirection(dir, active: isPressed)
-                    }
-                    .padding(.leading, 16)
+                    ControllersView(
+                        onDirection: { dir, isPressed in viewModel.setDirection(dir, active: isPressed) },
+                        onAChanged: {
+                            
+                        },
+                        onBChanged: {
+                            
+                        }
+                    )
+                    .padding(.bottom, 16)
                     Spacer()
                 }
                 .padding(.bottom, 16)
