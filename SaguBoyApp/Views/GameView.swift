@@ -46,36 +46,20 @@ struct GameView: View {
                             .background(Color.black.opacity(0.5))
                     }
                 }
+                .frame(maxWidth: .infinity)
+                .frame(height: 449)
                 
-                // Texto simples de vidas
-                Text("Vidas: \(viewModel.player.lifes)")
-                    .font(.headline.monospacedDigit())
-                    .foregroundStyle(.white)
-                    .padding(12)
+                Spacer()
                 
-                // Overlay de Game Over (opcional)
-                if viewModel.gameOver {
-                    Text("GAME OVER")
-                        .font(.largeTitle.bold())
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color.black.opacity(0.5))
-                }
+                ControllersView(
+                    onDirection: { dir, pressed in viewModel.setDirection(dir, active: pressed) },
+                    onA: { pressed in viewModel.handleA(pressed) },
+                    onB: { pressed in viewModel.handleB(pressed) },
+                    onStart: { pressed in viewModel.handleStart(pressed) }
+                )
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 449)
-
-            Spacer()
-
-            ControllersView(
-                onDirection: { dir, pressed in viewModel.setDirection(dir, active: pressed) },
-                onA: { pressed in viewModel.handleA(pressed) },
-                onB: { pressed in viewModel.handleB(pressed) },
-                onStart: { pressed in viewModel.handleStart(pressed) }
-            )
         }
         .background(Image(.metalico).resizable().scaledToFill().ignoresSafeArea())
-        
         .onDisappear { viewModel.stopGame() }
     }
 }
