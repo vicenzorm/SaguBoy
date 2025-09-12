@@ -16,7 +16,7 @@ class GameViewModel: GameViewModelProtocol {
     private var accEnemyStep: CFTimeInterval = 0
     
     private let tick: TimeInterval = 1.0 / 60.0
-    private let spawnInterval: TimeInterval = 1
+    private let spawnInterval: TimeInterval = 0.8
     private let enemyMoveInterval: TimeInterval = 0.1
     private let enemyStepDistance: CGFloat = 20
     private let iFrameDuration: TimeInterval = 1.0
@@ -93,6 +93,7 @@ class GameViewModel: GameViewModelProtocol {
             let dy = player.position.y - e.position.y
             let r = pr + er
             if (dx*dx + dy*dy) < (r*r) {
+                vibrate(with: .heavy)
                 applyDamage()
                 break
             }
@@ -124,7 +125,12 @@ class GameViewModel: GameViewModelProtocol {
     }
     
     func setDirection(_ dir: Direction, active: Bool) {
-        if active { activeDirections.insert(dir) } else { activeDirections.remove(dir) }
+        if active {
+            vibrate(with: .light)
+            activeDirections.insert(dir)
+        } else {
+            activeDirections.remove(dir)
+        }
     }
     
     private func updatePlayerPosition(dt: CFTimeInterval) {
@@ -152,13 +158,20 @@ class GameViewModel: GameViewModelProtocol {
     }
     
     func handleA(_ pressed: Bool) {
-        if pressed { /* ação A */ }
+        if pressed {
+            vibrate(with: .medium)
+            /* ação A */
+        }
     }
     func handleB(_ pressed: Bool) {
-        if pressed { /* ação B */ }
+        if pressed {
+            vibrate(with: .medium)
+            /* ação B */
+            }
     }
     func handleStart(_ pressed: Bool) {
         if pressed {
+            vibrate(with: .heavy)
             if gameOver { resetGame() } else { startGame() }
         }
     }
