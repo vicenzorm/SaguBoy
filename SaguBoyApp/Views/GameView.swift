@@ -59,6 +59,9 @@ struct GameView: View {
                 )
             }
         }
+        .onAppear() {
+            gameCenterViewModel.authPlayer()
+        }
         .background(Image(.metalico).resizable().scaledToFill().ignoresSafeArea())
         .onDisappear { viewModel.stopGame() }
     }
