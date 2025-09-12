@@ -3,6 +3,15 @@
     "version" : "2024-11-15"
   },
   "resources" : {
-
+    "leaderboards" : [
+      {
+        "archived" : false,
+        "defaultFormatter" : "INTEGER",
+        "referenceName" : "Pontuação principal",
+        "scoreSortType" : "ASC",
+        "submissionType" : "BEST_SCORE",
+        "vendorIdentifier" : "mainHighScore"
+      }
+    ]
   }
 }

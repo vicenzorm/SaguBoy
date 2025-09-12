@@ -8,7 +8,7 @@ import GameKit
 import Foundation
 
 @MainActor
-class GameCenterViewModel: GameCenterViewModelProtocol {
+class GameCenterViewModel {
     
     var isAuthReady: Bool = false
     var player: GKLocalPlayer?
@@ -55,4 +55,24 @@ class GameCenterViewModel: GameCenterViewModelProtocol {
         self.isAuthReady = self.localPlayer.isAuthenticated
         self.player = localPlayer.isAuthenticated ? localPlayer : nil
     }
+    
+    func submitScore(score: Int, leaderboardID: String) async {
+        if self.isAuthReady {
+            do {
+                try await GKLeaderboard.submitScore(
+                            score,
+                            context: 0,
+                            player: GKLocalPlayer.local,
+                            leaderboardIDs: [leaderboardID]
+                        )
+                print("enviou pont")
+            } catch {
+                print("erro quando envia pontuação\(error.localizedDescription)")
+            }
+        } else {
+            print("não autenticado")
+            return
+        }
+    }
+    
 }

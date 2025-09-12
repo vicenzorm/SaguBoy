@@ -7,62 +7,73 @@
 import SwiftUI
 
 struct GameView: View {
+    
     @State private var viewModel = GameViewModel()
+    @State private var gameCenterViewModel = GameCenterViewModel()
     
     var body: some View {
-        VStack(spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                Color.black.edgesIgnoringSafeArea(.all)
-                
-                // Player
-                Circle()
-                    .fill(Color.green)
-                    .frame(width: viewModel.player.size, height: viewModel.player.size)
-                    .position(viewModel.player.position)
-                
-                // Enemies
-                ForEach(viewModel.enemies) { enemy in
+        ZStack {
+            VStack(spacing: 0) {
+                ZStack(alignment: .topLeading) {
+                    Color.black.edgesIgnoringSafeArea(.all)
+                    
+                    // Player
                     Circle()
-                        .fill(Color.red)
-                        .frame(width: enemy.size, height: enemy.size)
-                        .position(enemy.position)
-                }
-                
-                // Texto simples de vidas
-                Text("Vidas: \(viewModel.player.lifes)")
-                    .font(.headline.monospacedDigit())
-                    .foregroundStyle(.white)
-                    .padding(12)
-                
-                // Overlay de Game Over (opcional)
-                if viewModel.gameOver {
-                    Text("GAME OVER")
-                        .font(.largeTitle.bold())
+                        .fill(Color.green)
+                        .frame(width: viewModel.player.size, height: viewModel.player.size)
+                        .position(viewModel.player.position)
+                    
+                    // Enemies
+                    ForEach(viewModel.enemies) { enemy in
+                        Circle()
+                            .fill(Color.red)
+                            .frame(width: enemy.size, height: enemy.size)
+                            .position(enemy.position)
+                    }
+                    
+                    // Texto simples de vidas
+                    Text("Vidas: \(viewModel.player.lifes)")
+                        .font(.headline.monospacedDigit())
                         .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color.black.opacity(0.5))
+                        .padding(12)
+                    
+                    // Overlay de Game Over (opcional)
+                    if viewModel.gameOver {
+                        Text("GAME OVER")
+                            .font(.largeTitle.bold())
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(Color.black.opacity(0.5))
+                    }
                 }
+                .frame(maxWidth: .infinity)
+                .frame(height: 449)
+                
+                Spacer()
+                
+                
+            ControllersView(
+                    onDirection: { dir, isPressed in viewModel.setDirection(dir, active: isPressed) },
+                    onAChanged: { },
+                    onBChanged: { },
+                    onStartClicked: { viewModel.resetGame() }
+                )
+                .background(
+                    Image(.metalico)
+                )
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 449)
+            .onAppear { viewModel.startGame() }
+            .onDisappear { viewModel.stopGame() }
             
             Spacer()
-            
-            
-        ControllersView(
-                onDirection: { dir, isPressed in viewModel.setDirection(dir, active: isPressed) },
-                onAChanged: { },
-                onBChanged: { },
-                onStartClicked: { viewModel.resetGame() }
-            )
-            .background(
-                Image(.metalico)
-            )
         }
-        .onAppear { viewModel.startGame() }
-        .onDisappear { viewModel.stopGame() }
-        
-        Spacer()
+        .onAppear() {
+            gameCenterViewModel.authPlayer()
+        }
+        .sheet(isPresented: $gameCenterViewModel.showAuthSheet ) {
+            GameCenterView()
+        }
+
     }
 }
 
