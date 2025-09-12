@@ -8,33 +8,29 @@ import SwiftUI
 
 struct GameView: View {
     @State private var viewModel = GameViewModel()
-    
+
     var body: some View {
         VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
-                Color.black.edgesIgnoringSafeArea(.all)
-                
-                // Player
+                Color.black.ignoresSafeArea()
+
                 Circle()
                     .fill(Color.green)
                     .frame(width: viewModel.player.size, height: viewModel.player.size)
                     .position(viewModel.player.position)
-                
-                // Enemies
+
                 ForEach(viewModel.enemies) { enemy in
                     Circle()
                         .fill(Color.red)
                         .frame(width: enemy.size, height: enemy.size)
                         .position(enemy.position)
                 }
-                
-                // Texto simples de vidas
+
                 Text("Vidas: \(viewModel.player.lifes)")
                     .font(.headline.monospacedDigit())
                     .foregroundStyle(.white)
                     .padding(12)
-                
-                // Overlay de Game Over (opcional)
+
                 if viewModel.gameOver {
                     Text("GAME OVER")
                         .font(.largeTitle.bold())
@@ -45,27 +41,18 @@ struct GameView: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 449)
-            
+
             Spacer()
-            
-            
-        ControllersView(
-                onDirection: { dir, isPressed in viewModel.setDirection(dir, active: isPressed) },
-                onAChanged: { },
-                onBChanged: { },
-                onStartClicked: { viewModel.resetGame() }
-            )
-            .background(
-                Image(.metalico)
+
+            ControllersView(
+                onDirection: { dir, pressed in viewModel.setDirection(dir, active: pressed) },
+                onA: { pressed in viewModel.handleA(pressed) },
+                onB: { pressed in viewModel.handleB(pressed) },
+                onStart: { pressed in viewModel.handleStart(pressed) }
             )
         }
-        .onAppear { viewModel.startGame() }
-        .onDisappear { viewModel.stopGame() }
+        .background(Image(.metalico).resizable().scaledToFill().ignoresSafeArea())
         
-        Spacer()
+        .onDisappear { viewModel.stopGame() }
     }
-}
-
-#Preview {
-    GameView()
 }

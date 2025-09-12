@@ -150,4 +150,16 @@ class GameViewModel: GameViewModelProtocol {
         p.y = min(max(r, p.y), max(r, playAreaSize.height - r))
         player.position = p
     }
+    
+    func handleA(_ pressed: Bool) {
+        if pressed { /* ação A */ }
+    }
+    func handleB(_ pressed: Bool) {
+        if pressed { /* ação B */ }
+    }
+    func handleStart(_ pressed: Bool) {
+        if pressed {
+            if gameOver { resetGame() } else { startGame() }
+        }
+    }
 }

@@ -8,26 +8,37 @@
 import SwiftUI
 
 struct ControllersView: View {
-    // Callbacks
+    // Saídas para o jogo
     let onDirection: (Direction, Bool) -> Void
-    var onAChanged: () -> Void
-    var onBChanged: () -> Void
-    var onStartClicked: () -> Void
-    
-    @State private var currentDirection: Direction? = nil
-    
+    let onA: (Bool) -> Void
+    let onB: (Bool) -> Void
+    let onStart: (Bool) -> Void
+
     private let dpadSize: CGFloat = 148
     private let deadZone: CGFloat = 18
+
+    @State private var currentDirection: Direction?
     
+    private var dpadImage: Image {
+        switch currentDirection {
+        case .some(.up):    return Image(.dpadCima)
+        case .some(.down):  return Image(.dpadBaixo)
+        case .some(.left):  return Image(.dpadEsquerda)
+        case .some(.right): return Image(.dpadDireita)
+        case .none:         return Image(.dpad)
+        }
+    }
+
     var body: some View {
-        VStack(spacing: 39) {
+        VStack(spacing: 40) {
+            Image(.saguboy)
+                .resizable()
+                .frame(width: 122, height: 23)
             HStack {
                 ZStack {
                     GeometryReader { geo in
                         let size = geo.size
-                        let center = CGPoint(x: size.width/2, y: size.height/2)
-                        
-                        Image(.dpad)
+                        dpadImage
                             .resizable()
                             .scaledToFill()
                             .frame(width: size.width, height: size.height)
@@ -35,20 +46,23 @@ struct ControllersView: View {
                             .gesture(
                                 DragGesture(minimumDistance: 0, coordinateSpace: .local)
                                     .onChanged { value in
-                                        if let newDir = direction(from: value.location,
-                                                                  center: center,
-                                                                  deadZone: deadZone) {
-                                            if newDir != currentDirection {
-                                                if let cur = currentDirection { onDirection(cur, false) }
-                                                currentDirection = newDir
-                                                onDirection(newDir, true)
-                                            }
-                                        } else {
-                                            
+                                        let center = CGPoint(x: size.width/2, y: size.height/2)
+                                        let dx = value.location.x - center.x
+                                        let dy = value.location.y - center.y
+                                        let dist = sqrt(dx*dx + dy*dy)
+                                        guard dist >= deadZone else {
                                             if let cur = currentDirection {
                                                 currentDirection = nil
                                                 onDirection(cur, false)
                                             }
+                                            return
+                                        }
+                                        let newDir: Direction = abs(dx) > abs(dy) ? (dx > 0 ? .right : .left)
+                                                                                 : (dy > 0 ? .down  : .up)
+                                        if newDir != currentDirection {
+                                            if let cur = currentDirection { onDirection(cur, false) }
+                                            currentDirection = newDir
+                                            onDirection(newDir, true)
                                         }
                                     }
                                     .onEnded { _ in
@@ -63,35 +77,33 @@ struct ControllersView: View {
                 .frame(width: dpadSize, height: dpadSize)
                 .padding(8)
                 .accessibilityLabel("Direcional")
-                
+
                 Spacer()
-                
+
                 HStack {
                     VStack {
                         Spacer()
-                        Button {
-                            onBChanged()
-                        } label: {
-                            Image(.buttonAB)
-                                .resizable()
-                                .frame(width: 71, height: 71)
-                                .scaledToFill()
-                                .accessibilityLabel("Botão A")
-                        }
-                        Text("B")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundStyle(.buttonclr)
-                    }
-                    VStack {
-                        Button {
-                            onAChanged()
-                        } label: {
+                        Button {} label: {
                             Image(.buttonAB)
                                 .resizable()
                                 .frame(width: 71, height: 71)
                                 .scaledToFill()
                                 .accessibilityLabel("Botão B")
                         }
+                        .buttonStyle(HoldButtonStyle { isDown in onB(isDown) })
+                        Text("B")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundStyle(.buttonclr)
+                    }
+                    VStack {
+                        Button {} label: {
+                            Image(.buttonAB)
+                                .resizable()
+                                .frame(width: 71, height: 71)
+                                .scaledToFill()
+                                .accessibilityLabel("Botão A")
+                        }
+                        .buttonStyle(HoldButtonStyle { isDown in onA(isDown) })
                         Text("A")
                             .font(.system(size: 24, weight: .bold))
                             .foregroundStyle(.buttonclr)
@@ -99,46 +111,28 @@ struct ControllersView: View {
                     }
                 }
                 .frame(width: 142, height: 176)
+                .padding(.trailing, 27)
             }
-            Button {
-                onStartClicked()
-            } label: {
+
+            Button {} label: {
                 Image(.startButton)
                     .resizable()
                     .frame(width: 42, height: 19)
                     .scaledToFill()
                     .accessibilityLabel("Start")
             }
-        }
-    }
-    
-    
-    private func direction(from point: CGPoint,
-                           center: CGPoint,
-                           deadZone: CGFloat) -> Direction? {
-        let dx = point.x - center.x
-        let dy = point.y - center.y
-        let dist = sqrt(dx*dx + dy*dy)
-        
-        guard dist >= deadZone else { return nil }
-        
-        if abs(dx) > abs(dy) {
-            return dx > 0 ? .right : .left
-        } else {
-            return dy > 0 ? .down : .up
+            .buttonStyle(HoldButtonStyle { isDown in onStart(isDown) })
         }
     }
 }
-
 
 struct HoldButtonStyle: ButtonStyle {
     var onChanged: (Bool) -> Void
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .onChange(of: configuration.isPressed) { onChanged($0) }
+            .onChange(of: configuration.isPressed) {
+                onChanged(configuration.isPressed)
+            }
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
     }
-}
-
-#Preview {
 }
