@@ -3,6 +3,25 @@
     "version" : "2024-11-15"
   },
   "resources" : {
+    "leaderboardLocalizations" : {
+      "mainHighScore" : [
+        {
+          "formatterOverride" : "INTEGER",
+          "formatterSuffix" : "points",
+          "formatterSuffixSingular" : "point",
+          "locale" : "en-US",
+          "localID" : "mainHighScore-en-US",
+          "name" : "World's Bests"
+        },
+        {
+          "formatterOverride" : "INTEGER",
+          "formatterSuffix" : "pontos",
+          "locale" : "pt-BR",
+          "localID" : "mainHighScore-pt-BR",
+          "name" : "Top Mundial"
+        }
+      ]
+    },
     "leaderboards" : [
       {
         "archived" : false,
