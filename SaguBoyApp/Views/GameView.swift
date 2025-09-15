@@ -5,64 +5,96 @@
 //  Created by Vicenzo Másera on 03/09/25.
 //
 import SwiftUI
+import SpriteKit
 
 struct GameView: View {
-    
-    @State private var viewModel = GameViewModel()
+
     @State private var gameCenterViewModel = GameCenterViewModel()
-    
+
+    private func makeScene(size: CGSize) -> GameScene {
+        let scene = GameScene()
+        scene.size = size
+        scene.scaleMode = .resizeFill
+
+        scene.onLivesChanged = { lives in
+            self.lives = lives
+        }
+        scene.onGameOver = {
+            self.isGameOver = true
+        }
+        return scene
+    }
+
+    // HUD state
+    @State private var lives: Int = 3
+    @State private var isGameOver: Bool = false
+    @State private var scene: GameScene = GameScene()
+
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
+        VStack(spacing: 0) {
+            GeometryReader { geo in
                 ZStack(alignment: .topLeading) {
-                    Color.black.edgesIgnoringSafeArea(.all)
-                    
-                    // Player
-                    Circle()
-                        .fill(Color.green)
-                        .frame(width: viewModel.player.size, height: viewModel.player.size)
-                        .position(viewModel.player.position)
-                    
-                    // Enemies
-                    ForEach(viewModel.enemies) { enemy in
-                        Circle()
-                            .fill(Color.red)
-                            .frame(width: enemy.size, height: enemy.size)
-                            .position(enemy.position)
-                    }
-                    
-                    // Texto simples de vidas
-                    Text("Vidas: \(viewModel.player.lifes)")
+                    SpriteView(scene: scene)
+                        .ignoresSafeArea()
+                        .onAppear {
+                            scene = makeScene(size: CGSize(width: geo.size.width, height: geo.size.height))
+                        }
+                        .onChange(of: geo.size) { newSize in
+                            scene.size = newSize
+                        }
+
+                    Text("Vidas: \(lives)")
                         .font(.headline.monospacedDigit())
                         .foregroundStyle(.white)
                         .padding(12)
-                    
-                    // Overlay de Game Over (opcional)
-                    if viewModel.gameOver {
+
+                    if isGameOver {
                         Text("GAME OVER")
                             .font(.largeTitle.bold())
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .background(Color.black.opacity(0.5))
+                            .onTapGesture {
+                                isGameOver = false
+                                lives = 3
+                                scene.resetGame()
+                            }
                     }
                 }
-                .frame(maxWidth: .infinity)
-                .frame(height: 449)
-                
-                Spacer()
-                
-                ControllersView(
-                    onDirection: { dir, pressed in viewModel.setDirection(dir, active: pressed) },
-                    onA: { pressed in viewModel.handleA(pressed) },
-                    onB: { pressed in viewModel.handleB(pressed) },
-                    onStart: { pressed in viewModel.handleStart(pressed) }
-                )
             }
-        }
-        .onAppear() {
-            gameCenterViewModel.authPlayer()
+            .frame(height: 449)
+
+            Spacer()
+
+            ControllersView(
+                onDirection: { dir, pressed in
+                    scene.setDirection(dir, active: pressed)
+                },
+                onA: { pressed in
+                    if pressed {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    }
+                },
+                onB: { pressed in
+                    if pressed {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    }
+                },
+                onStart: { pressed in
+                    if pressed {
+                        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        if isGameOver {
+                            isGameOver = false
+                            lives = 3
+                            scene.resetGame()
+                        } else {
+                            // opcional: pausar/despausar
+                        }
+                    }
+                }
+            )
         }
         .background(Image(.metalico).resizable().scaledToFill().ignoresSafeArea())
-        .onDisappear { viewModel.stopGame() }
+        .onAppear { gameCenterViewModel.authPlayer() }
     }
 }
