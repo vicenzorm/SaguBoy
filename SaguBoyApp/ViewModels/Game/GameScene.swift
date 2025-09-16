@@ -13,13 +13,22 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Callbacks (para SwiftUI reagir)
     var onLivesChanged: ((Int) -> Void)?
     var onGameOver: (() -> Void)?
+    var onPointsChanged:((Int) -> Void)?
 
     // MARK: - Player
     private let playerRadius: CGFloat = 15
     private let playerSpeed: CGFloat = 180
+    private let playerMinPoints = 0
+    private var playerPoints = 0 { didSet { onPointsChanged?(playerPoints) } }
     private var playerLifes = 3 { didSet { onLivesChanged?(playerLifes) } }
     private let playerMaxLifes = 3
     private var player: SKNode!
+    
+    
+    // MARK: - Points
+    private let pointsPerSecond = 10.0
+    private var timeSinceLastPoint: TimeInterval = 0
+    private var isGameRunning = false
 
     // MARK: - Inimigos
     private let spawnInterval: TimeInterval = 0.8
@@ -41,12 +50,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     override func didMove(to view: SKView) {
         backgroundColor = .black
         scaleMode = .resizeFill
-
+        
         physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self
 
         setupPlayer()
         scheduleSpawns()
+        
+        isGameRunning = true
     }
 
     // MARK: - Público (entrada)
@@ -57,10 +68,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     func resetGame() {
         removeAllActions()
         removeAllChildren()
+        isGameRunning = true
 
         setupPlayer()
         scheduleSpawns()
         playerLifes = playerMaxLifes
+        playerPoints = playerMinPoints
         invincibleUntil = 0
         lastUpdateTime = 0
     }
@@ -168,9 +181,23 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         if lastUpdateTime == 0 { lastUpdateTime = currentTime }
         let dt = min(currentTime - lastUpdateTime, 1.0/30.0)
         lastUpdateTime = currentTime
-
+        updatePoints(dt: dt)
         updatePlayer(dt: dt)
         cleanupOffscreenEnemies()
+    }
+    
+    private func updatePoints(dt: TimeInterval) {
+        guard isGameRunning else { return }
+        timeSinceLastPoint += dt
+        let scoringInterval = 1.0 / pointsPerSecond
+        if timeSinceLastPoint >= scoringInterval {
+
+            let pointsToAdd = Int(timeSinceLastPoint / scoringInterval)
+
+            playerPoints += pointsToAdd
+            
+            timeSinceLastPoint -= Double(pointsToAdd) * scoringInterval
+        }
     }
 
     private func updatePlayer(dt: TimeInterval) {
@@ -237,7 +264,11 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     private func gameOver() {
+        isGameRunning = false
         removeAction(forKey: "spawnLoop")
         onGameOver?()
+        
     }
+    
+    
 }
