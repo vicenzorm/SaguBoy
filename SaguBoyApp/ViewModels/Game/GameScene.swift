@@ -26,7 +26,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     
     // MARK: - Points
-    private let pointsPerSecond = 10.0
+    private let pointsPerSecond = 1000.0
     private var timeSinceLastPoint: TimeInterval = 0
     private var isGameRunning = false
 
@@ -264,10 +264,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     private func gameOver() {
+        
         isGameRunning = false
         removeAction(forKey: "spawnLoop")
         onGameOver?()
-        
     }
     
     

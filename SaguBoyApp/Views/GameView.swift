@@ -20,6 +20,7 @@ struct GameView: View {
             self.lives = lives
         }
         scene.onGameOver = {
+            Task { await gameCenterViewModel.submitScore(score: self.points, leaderboardID: "mainHighScore") }
             self.isGameOver = true
         }
         scene.onPointsChanged = { points in
@@ -47,15 +48,17 @@ struct GameView: View {
                             scene.size = newSize
                         }
 
-                    Text("Vidas: \(lives)")
-                        .font(.headline.monospacedDigit())
-                        .foregroundStyle(.white)
-                        .padding(12)
-                    
-                    Text("Pontos: \(points)")
-                        .font(.headline.monospacedDigit())
-                        .foregroundStyle(.white)
-                        .padding(12)
+                    HStack {
+                        Text("Vidas: \(lives)")
+                            .font(.headline.monospacedDigit())
+                            .foregroundStyle(.white)
+                            .padding(12)
+                        
+                        Text("Pontos: \(points)")
+                            .font(.headline.monospacedDigit())
+                            .foregroundStyle(.white)
+                            .padding(12)
+                    }
 
                     if isGameOver {
                         Text("GAME OVER")
@@ -95,10 +98,9 @@ struct GameView: View {
                         if isGameOver {
                             isGameOver = false
                             lives = 3
-                            Task { await gameCenterViewModel.submitScore(score: points, leaderboardID: "mainHighScore") }
                             scene.resetGame()
                         } else {
-                            // opcional: pausar/despausar
+                            
                         }
                     }
                 }
