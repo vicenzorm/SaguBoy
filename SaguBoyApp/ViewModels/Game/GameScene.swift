@@ -23,7 +23,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var playerPoints = 0 { didSet { onPointsChanged?(playerPoints) } }
     private var playerLifes = 3 { didSet { onLivesChanged?(playerLifes) } }
     private let playerMaxLifes = 3
-    private var player: SKNode!
+    private var player: PlayerNode!
         
     // MARK: - Points
     private let pointsPerSecond = 1000.0
