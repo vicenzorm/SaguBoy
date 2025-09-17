@@ -26,12 +26,16 @@ struct GameView: View {
         scene.onPointsChanged = { points in
             self.points = points
         }
+        scene.onPowerupChanged = {
+            self.powerups = $0
+        }
         return scene
     }
 
     // HUD state
     @State private var points: Int = 0
     @State private var lives: Int = 3
+    @State private var powerups: Int = 0
     @State private var isGameOver: Bool = false
     @State private var scene: GameScene = GameScene()
 
@@ -48,13 +52,18 @@ struct GameView: View {
                             scene.size = newSize
                         }
 
-                    HStack {
+                    HStack (spacing: 8) {
                         Text("Vidas: \(lives)")
                             .font(.headline.monospacedDigit())
                             .foregroundStyle(.white)
                             .padding(12)
                         
                         Text("Pontos: \(points)")
+                            .font(.headline.monospacedDigit())
+                            .foregroundStyle(.white)
+                            .padding(12)
+                        
+                        Text("Power: \(powerups)/1")
                             .font(.headline.monospacedDigit())
                             .foregroundStyle(.white)
                             .padding(12)
@@ -84,6 +93,7 @@ struct GameView: View {
                 },
                 onA: { pressed in
                     if pressed {
+                        scene.handleA(pressed: pressed)
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     }
                 },
@@ -98,6 +108,7 @@ struct GameView: View {
                         if isGameOver {
                             isGameOver = false
                             lives = 3
+                            powerups = 0
                             scene.resetGame()
                         } else {
                             
