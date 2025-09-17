@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "Botão AB - Stand.png",
+      "filename" : "State=Default.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "Botão AB - Stand@2x.png",
+      "filename" : "State=Default@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "Botão AB - Stand@3x.png",
+      "filename" : "State=Default@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
