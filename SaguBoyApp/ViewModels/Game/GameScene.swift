@@ -311,14 +311,20 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func updatePlayer(dt: TimeInterval) {
         guard let p = player else { return }
         var dx: CGFloat = 0, dy: CGFloat = 0
-        if activeDirections.contains(.left)  { dx -= 1 }
-        if activeDirections.contains(.right) { dx += 1 }
-        if activeDirections.contains(.up)    { dy += 1 }
-        if activeDirections.contains(.down)  { dy -= 1 }
-        
+        if activeDirections.contains(.left)      { dx -= 1 }
+        if activeDirections.contains(.right)     { dx += 1 }
+        if activeDirections.contains(.up)        { dy += 1 }
+        if activeDirections.contains(.down)      { dy -= 1 }
+        if activeDirections.contains(.upLeft)    { dx -= 1; dy += 1 }
+        if activeDirections.contains(.upRight)   { dx += 1; dy += 1 }
+        if activeDirections.contains(.downLeft)  { dx -= 1; dy -= 1 }
+        if activeDirections.contains(.downRight) { dx += 1; dy -= 1 }
+
+        // Normalizar diagonal (senão anda mais rápido na diagonal)
         if dx != 0 && dy != 0 {
             let invSqrt2: CGFloat = 1.0 / 1.41421356237
-            dx *= invSqrt2; dy *= invSqrt2
+            dx *= invSqrt2
+            dy *= invSqrt2
         }
         // ESTADOS
         if dy > 0 {
