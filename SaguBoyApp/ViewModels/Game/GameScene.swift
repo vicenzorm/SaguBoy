@@ -268,7 +268,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             let invSqrt2: CGFloat = 1.0 / 1.41421356237
             dx *= invSqrt2; dy *= invSqrt2
         }
-        
+        // ESTADOS
         if dy > 0 {
             player.stateMachine.enter(IdleState.self)
         } else if dy < 0 {

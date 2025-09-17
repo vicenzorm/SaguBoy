@@ -24,9 +24,13 @@ class PlayerNode: SKSpriteNode {
         
         stateMachine = GKStateMachine(states: [
             IdleState(player: self),
+            
             DownState(player: self),
             LeftState(player: self),
-            RightState(player: self)
+            RightState(player: self),
+            UpState(player: self),
+            
+            DashState(player: self)
         ])
         
         stateMachine.enter(IdleState.self)
