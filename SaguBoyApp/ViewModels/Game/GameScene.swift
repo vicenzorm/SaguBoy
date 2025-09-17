@@ -92,9 +92,11 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Setup
     private func setupPlayer() {
-        let node = SKShapeNode(circleOfRadius: playerRadius)
-        node.fillColor = .green
-        node.strokeColor = .clear
+        let atlas = SKTextureAtlas(named: "mainCharacter")
+        let playerTexture = atlas.textureNamed("idle1")
+        
+        let node = PlayerNode(texture: playerTexture, color: .white, size: playerTexture.size())
+        
         node.position = CGPoint(x: size.width * 0.5, y: size.height * 0.2)
         
         node.physicsBody = SKPhysicsBody(circleOfRadius: playerRadius)
@@ -235,6 +237,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         updatePoints(dt: dt)
         
         updatePlayer(dt: dt)
+        
+        player.update(deltaTime: dt)
         cleanupOffscreen()
     }
     
@@ -263,6 +267,18 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         if dx != 0 && dy != 0 {
             let invSqrt2: CGFloat = 1.0 / 1.41421356237
             dx *= invSqrt2; dy *= invSqrt2
+        }
+        
+        if dy > 0 {
+            player.stateMachine.enter(IdleState.self)
+        } else if dy < 0 {
+            player.stateMachine.enter(DownState.self)
+        } else if dx > 0 {
+            player.stateMachine.enter(RightState.self)
+        } else if dx < 0 {
+            player.stateMachine.enter(LeftState.self)
+        } else {
+            player.stateMachine.enter(IdleState.self)
         }
         
         let dist = CGFloat(dt) * playerSpeed

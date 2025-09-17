@@ -20,7 +20,7 @@ class DashState: PlayerState {
     }
     
     override func isValidNextState(_ stateClass: AnyClass) -> Bool {
-        let classIs = (stateClass is DownState.Type || stateClass is IdleState.Type || stateClass is RightState.Type || stateClass is LeftState.Type)
+        let classIs = (stateClass is IdleState.Type || stateClass is LeftState.Type || stateClass is DownState.Type || stateClass is UpState.Type || stateClass is RightState.Type)
         return classIs
     }
 }

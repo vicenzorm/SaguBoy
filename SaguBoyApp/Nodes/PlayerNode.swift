@@ -23,7 +23,10 @@ class PlayerNode: SKSpriteNode {
         loadTextures()
         
         stateMachine = GKStateMachine(states: [
-            
+            IdleState(player: self),
+            DownState(player: self),
+            LeftState(player: self),
+            RightState(player: self)
         ])
         
         stateMachine.enter(IdleState.self)
