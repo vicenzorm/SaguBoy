@@ -14,6 +14,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     var onLivesChanged: ((Int) -> Void)?
     var onGameOver: (() -> Void)?
     var onPointsChanged:((Int) -> Void)?
+    var onPowerupChanged: ((Int) -> Void)?
 
     // MARK: - Player
     private let playerRadius: CGFloat = 15
@@ -22,30 +23,35 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var playerPoints = 0 { didSet { onPointsChanged?(playerPoints) } }
     private var playerLifes = 3 { didSet { onLivesChanged?(playerLifes) } }
     private let playerMaxLifes = 3
-    private var player: SKNode!
-    
-    
+    private var player: PlayerNode!
+        
     // MARK: - Points
-    private let pointsPerSecond = 10.0
+    private let pointsPerSecond = 1000.0
     private var timeSinceLastPoint: TimeInterval = 0
     private var isGameRunning = false
 
     // MARK: - Inimigos
-    private let spawnInterval: TimeInterval = 0.8
+    private let spawnIntervalEnemies: TimeInterval = 0.8
+    private let spawnIntervalWind: TimeInterval = 1.5
     private let enemyMinYToRemove: CGFloat = -60
-
+    
+    // MARK: - Power-up
+    private let powerupDuration: TimeInterval = 2.0
+    private let powerupSpawnInterval: TimeInterval = 4.0
+    private var powerupCharges: Int = 0 { didSet { onPowerupChanged?(powerupCharges) } }
+    
     // MARK: - Invencibilidade (i-frames)
     private let iFrameDuration: TimeInterval = 1.0
     private var invincibleUntil: TimeInterval = 0
     private var isPlayerInvincible: Bool { currentTimeCache < invincibleUntil }
-
+    
     // MARK: - Input
     private var activeDirections = Set<Direction>()
-
+    
     // MARK: - Time
     private var lastUpdateTime: TimeInterval = 0
     private var currentTimeCache: TimeInterval = 0
-
+    
     // MARK: - Ciclo de vida
     override func didMove(to view: SKView) {
         backgroundColor = .black
@@ -53,18 +59,18 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         
         physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self
-
-        setupPlayer()
-        scheduleSpawns()
         
         isGameRunning = true
+        setupPlayer()
+        scheduleSpawns()
+        schedulePowerupSpawns()
     }
-
+    
     // MARK: - Público (entrada)
     func setDirection(_ dir: Direction, active: Bool) {
         if active { activeDirections.insert(dir) } else { activeDirections.remove(dir) }
     }
-
+    
     func resetGame() {
         removeAllActions()
         removeAllChildren()
@@ -76,55 +82,76 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         playerPoints = playerMinPoints
         invincibleUntil = 0
         lastUpdateTime = 0
+        powerupCharges = 0
     }
-
+    
+    func handleA(pressed: Bool) {
+        guard pressed, powerupCharges > 0 else { return }
+        powerupCharges = 0
+        grantPowerInvincibility()
+    }
+    
     // MARK: - Setup
     private func setupPlayer() {
-        let node = SKShapeNode(circleOfRadius: playerRadius)
-        node.fillColor = .green
-        node.strokeColor = .clear
+        let atlas = SKTextureAtlas(named: "mainCharacter")
+        let playerTexture = atlas.textureNamed("idle1")
+        
+        let node = PlayerNode(texture: playerTexture, color: .white, size: playerTexture.size())
+        
         node.position = CGPoint(x: size.width * 0.5, y: size.height * 0.2)
-
+        
         node.physicsBody = SKPhysicsBody(circleOfRadius: playerRadius)
         node.physicsBody?.isDynamic = true
         node.physicsBody?.affectedByGravity = false
         node.physicsBody?.allowsRotation = false
         node.physicsBody?.categoryBitMask = PhysicsCategory.player
         node.physicsBody?.contactTestBitMask = PhysicsCategory.enemy
-        node.physicsBody?.collisionBitMask = PhysicsCategory.none
-
+        node.physicsBody?.collisionBitMask = PhysicsCategory.wind
+        
         addChild(node)
         player = node
     }
-
+    
     private func scheduleSpawns() {
-        let sequence = SKAction.sequence([
-            .run { [weak self] in self?.spawnEnemy() },
-            .wait(forDuration: spawnInterval)
+        let sequenceEnemy = SKAction.sequence([
+            .run { [weak self] in
+                self?.spawnEnemy()
+            },
+            .wait(forDuration: spawnIntervalEnemies)
         ])
-        run(.repeatForever(sequence), withKey: "spawnLoop")
-    }
 
+        let sequenceWind = SKAction.sequence([
+            .run { [weak self] in
+                self?.spawnWind()
+            },
+            .wait(forDuration: spawnIntervalWind)
+        ])
+        
+        let groupSpawn = SKAction.group([sequenceEnemy, sequenceWind])
+        
+        run(.repeatForever(groupSpawn), withKey: "spawnLoop")
+    }
+    
     private func spawnEnemy() {
         let kind: EnemyKind = Bool.random() ? .round : .box
         let size = kind.defaultSize
-
+        
         let minX = size.width * 0.5
         let maxX = self.size.width - size.width * 0.5
         guard maxX >= minX else { return }
         let x = CGFloat.random(in: minX...maxX)
-
+        
         let startY = self.size.height + size.height
         let pos = CGPoint(x: x, y: startY)
-
+        
         let node: SKNode
-
+        
         if let asset = kind.assetName {
             let sprite = SKSpriteNode(imageNamed: asset)
             sprite.size = size
             sprite.position = pos
             node = sprite
-
+            
             switch kind {
             case .round:
                 sprite.physicsBody = SKPhysicsBody(circleOfRadius: size.width * 0.5)
@@ -154,7 +181,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                 node = shape
             }
         }
-
+        
         node.physicsBody?.isDynamic = true
         node.physicsBody?.affectedByGravity = false
         node.physicsBody?.allowsRotation = false
@@ -162,28 +189,109 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         node.physicsBody?.contactTestBitMask = PhysicsCategory.player
         node.physicsBody?.collisionBitMask = PhysicsCategory.none
         node.name = "enemy"
-
+        
         addChild(node)
-
+        
         let distance = self.size.height + 120
         let speed: CGFloat = 140
         let duration = TimeInterval(distance / speed)
-
+        
         let move = SKAction.moveBy(x: 0, y: -distance, duration: duration)
         let remove = SKAction.removeFromParent()
         node.run(.sequence([move, remove]))
     }
+    
+    private func spawnWind() {
+        guard let view = view else { return }
+        
+        var wind: SKShapeNode!
+        let frame = CGSize(width: 10, height: 100)
+        wind = SKShapeNode(rectOf: frame)
+        wind.fillColor = .blue
+        wind.strokeColor = .clear
+        
+        let safeArea = CGFloat(view.safeAreaInsets.top + 100)
+        
+        
+        
+        // Gere o vento dentro da SafeArea (Entre states do jogador e os controles da metade da tela)
+        let randomY = CGFloat.random(in: 50...self.size.height - safeArea)
+        
+        wind.position = CGPoint(x: self.size.width + 40, y: randomY)
+        
+        // Corpo físico
+        
+        wind.physicsBody = SKPhysicsBody(rectangleOf: frame)
+        wind.physicsBody?.isDynamic = true
+        wind.physicsBody?.allowsRotation = false
+        wind.physicsBody?.categoryBitMask = PhysicsCategory.wind
+        wind.physicsBody?.contactTestBitMask = PhysicsCategory.player
+        wind.physicsBody?.collisionBitMask = PhysicsCategory.player
+        
+        
+        addChild(wind)
+        
+        let moveLeft = SKAction.moveBy(x: -self.size.width - 80, y: 0, duration: 4)
+        let remove = SKAction.removeFromParent()
+        wind.run(SKAction.sequence([moveLeft, remove]))
+        
+        
+        
+    }
 
+    
+    private func schedulePowerupSpawns() {
+        let seq = SKAction.sequence([
+            .wait(forDuration: powerupSpawnInterval),
+            .run { [weak self] in self?.spawnPowerup() }
+        ])
+        run(.repeatForever(seq), withKey: "powerupLoop")
+    }
+    
+    private func spawnPowerup() {
+        guard powerupCharges == 0, childNode(withName: "powerup") == nil else { return }
+        
+        let radius: CGFloat = 7
+        let minX = radius
+        let maxX = size.width - radius
+        guard maxX >= minX else { return }
+        let x = CGFloat.random(in: minX...maxX)
+        
+        let dot = SKShapeNode(circleOfRadius: radius)
+        dot.fillColor = .cyan
+        dot.strokeColor = .clear
+        dot.position = CGPoint(x: x, y: size.height + radius * 2)
+        dot.name = "powerup"
+        
+        dot.physicsBody = SKPhysicsBody(circleOfRadius: radius)
+        dot.physicsBody?.isDynamic = true
+        dot.physicsBody?.affectedByGravity = false
+        dot.physicsBody?.allowsRotation = false
+        dot.physicsBody?.categoryBitMask = PhysicsCategory.powerup
+        dot.physicsBody?.contactTestBitMask = PhysicsCategory.player
+        dot.physicsBody?.collisionBitMask = PhysicsCategory.none
+        
+        addChild(dot)
+        
+        let distance = self.size.height + 120
+        let speed: CGFloat = 100
+        let duration = TimeInterval(distance / speed)
+        dot.run(.sequence([.moveBy(x: 0, y: -distance, duration: duration), .removeFromParent()]))
+    }
+    
     // MARK: - Update loop
     override func update(_ currentTime: TimeInterval) {
         currentTimeCache = currentTime
-
+        
         if lastUpdateTime == 0 { lastUpdateTime = currentTime }
         let dt = min(currentTime - lastUpdateTime, 1.0/30.0)
         lastUpdateTime = currentTime
         updatePoints(dt: dt)
+        
         updatePlayer(dt: dt)
-        cleanupOffscreenEnemies()
+        
+        player.update(deltaTime: dt)
+        cleanupOffscreen()
     }
     
     private func updatePoints(dt: TimeInterval) {
@@ -207,52 +315,89 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         if activeDirections.contains(.right) { dx += 1 }
         if activeDirections.contains(.up)    { dy += 1 }
         if activeDirections.contains(.down)  { dy -= 1 }
-
+        
         if dx != 0 && dy != 0 {
             let invSqrt2: CGFloat = 1.0 / 1.41421356237
             dx *= invSqrt2; dy *= invSqrt2
         }
-
+        // ESTADOS
+        if dy > 0 {
+            player.stateMachine.enter(IdleState.self)
+        } else if dy < 0 {
+            player.stateMachine.enter(DownState.self)
+        } else if dx > 0 {
+            player.stateMachine.enter(RightState.self)
+        } else if dx < 0 {
+            player.stateMachine.enter(LeftState.self)
+        } else {
+            player.stateMachine.enter(IdleState.self)
+        }
+        
         let dist = CGFloat(dt) * playerSpeed
         var pos = p.position
         pos.x += dx * dist
         pos.y += dy * dist
-
+        
         let r = playerRadius
         pos.x = min(max(r, pos.x), size.width - r)
         pos.y = min(max(r, pos.y), size.height - r)
         p.position = pos
     }
-
-    private func cleanupOffscreenEnemies() {
+    
+    private func cleanupOffscreen() {
         enumerateChildNodes(withName: "enemy") { node, _ in
-            if node.position.y < self.enemyMinYToRemove { node.removeFromParent() }
+            if node.position.y < -60 { node.removeFromParent() }
+        }
+        enumerateChildNodes(withName: "powerup") { node, _ in
+            if node.position.y < -20 { node.removeFromParent() }
         }
     }
-
+    
     func didBegin(_ contact: SKPhysicsContact) {
-        let a = contact.bodyA.categoryBitMask
-        let b = contact.bodyB.categoryBitMask
-
-        let mask = a | b
-        if mask == (PhysicsCategory.player | PhysicsCategory.enemy) {
+        
+        let mask = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
+        switch mask {
+            
+        case PhysicsCategory.player | PhysicsCategory.enemy:
             handlePlayerHit()
+            
+        case PhysicsCategory.player | PhysicsCategory.powerup:
+            collectPowerup(contact)
+            
+        case PhysicsCategory.player | PhysicsCategory.wind:
+            handleWindHit(contact)
+            
+        default:
+            break
         }
     }
-
+    
     private func handlePlayerHit() {
         guard !isPlayerInvincible else { return }
-
+        
         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-
+        
         playerLifes = max(0, playerLifes - 1)
         startInvincibilityBlink()
-
+        
         if playerLifes <= 0 {
             gameOver()
         }
     }
-
+    
+    private func collectPowerup(_ contact: SKPhysicsContact) {
+        let powerNode = (contact.bodyA.categoryBitMask == PhysicsCategory.powerup) ? contact.bodyA.node : contact.bodyB.node
+        powerNode?.removeFromParent()
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        
+        powerupCharges = 1
+        
+        let s1 = SKAction.scale(to: 1.1, duration: 0.08)
+        let s2 = SKAction.scale(to: 1.0, duration: 0.08)
+        
+        player.run(.sequence([s1, s2]))
+    }
+    
     private func startInvincibilityBlink() {
         invincibleUntil = currentTimeCache + iFrameDuration
         player.alpha = 0.4
@@ -262,12 +407,57 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         ])
         run(restore)
     }
-
+    
+    private func grantPowerInvincibility() {
+        invincibleUntil = max(invincibleUntil, currentTimeCache) + powerupDuration
+        startShieldEffect(for: powerupDuration)
+    }
+    
+    private func startShieldEffect(for duration: TimeInterval) {
+        player.childNode(withName: "shield")?.removeFromParent()
+        
+        player.alpha = 0.4
+        let restore = SKAction.sequence([
+            .wait(forDuration: iFrameDuration),
+            .run { [weak self] in self?.player.alpha = 1.0 }
+        ])
+        run(restore)
+    }
+    
+    private func handleWindHit(_ contact: SKPhysicsContact) {
+            
+        guard let wind = (contact.bodyA.categoryBitMask == PhysicsCategory.wind) ? contact.bodyA.node : contact.bodyB.node else { return }
+        
+        let wait = SKAction.wait(forDuration: 1.25)
+        
+        let disablePhysics = SKAction.run { [weak wind] in
+            wind?.physicsBody = nil
+        }
+        
+        wind.run(SKAction.sequence([wait, disablePhysics]))
+        
+    }
+    
+    private func disableWindPhysicBody(_ contact: SKPhysicsContact) {
+        
+        guard let windNode = (contact.bodyA.categoryBitMask == PhysicsCategory.wind) ? contact.bodyA.node : contact.bodyB.node else { return }
+        
+        guard let body = windNode.physicsBody else {return}
+        
+        body.categoryBitMask = PhysicsCategory.none
+        body.contactTestBitMask = 0
+        body.collisionBitMask = 0
+        windNode.physicsBody = nil
+     
+    }
+    // MARK: - Game Over
     private func gameOver() {
+        
         isGameRunning = false
         removeAction(forKey: "spawnLoop")
+        removeAction(forKey: "enemyLoop")
+        removeAction(forKey: "powerupLoop")
         onGameOver?()
-        
     }
     
     

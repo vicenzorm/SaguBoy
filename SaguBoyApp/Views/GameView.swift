@@ -20,10 +20,14 @@ struct GameView: View {
             self.lives = lives
         }
         scene.onGameOver = {
+            Task { await gameCenterViewModel.submitScore(score: self.points, leaderboardID: "mainHighScore") }
             self.isGameOver = true
         }
         scene.onPointsChanged = { points in
             self.points = points
+        }
+        scene.onPowerupChanged = {
+            self.powerups = $0
         }
         return scene
     }
@@ -31,6 +35,7 @@ struct GameView: View {
     // HUD state
     @State private var points: Int = 0
     @State private var lives: Int = 3
+    @State private var powerups: Int = 0
     @State private var isGameOver: Bool = false
     @State private var scene: GameScene = GameScene()
 
@@ -47,15 +52,22 @@ struct GameView: View {
                             scene.size = newSize
                         }
 
-                    Text("Vidas: \(lives)")
-                        .font(.headline.monospacedDigit())
-                        .foregroundStyle(.white)
-                        .padding(12)
-                    
-                    Text("Pontos: \(points)")
-                        .font(.headline.monospacedDigit())
-                        .foregroundStyle(.white)
-                        .padding(12)
+                    HStack (spacing: 8) {
+                        Text("Vidas: \(lives)")
+                            .font(.headline.monospacedDigit())
+                            .foregroundStyle(.white)
+                            .padding(12)
+                        
+                        Text("Pontos: \(points)")
+                            .font(.headline.monospacedDigit())
+                            .foregroundStyle(.white)
+                            .padding(12)
+                        
+                        Text("Power: \(powerups)/1")
+                            .font(.headline.monospacedDigit())
+                            .foregroundStyle(.white)
+                            .padding(12)
+                    }
 
                     if isGameOver {
                         Text("GAME OVER")
@@ -81,6 +93,7 @@ struct GameView: View {
                 },
                 onA: { pressed in
                     if pressed {
+                        scene.handleA(pressed: pressed)
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     }
                 },
@@ -95,10 +108,10 @@ struct GameView: View {
                         if isGameOver {
                             isGameOver = false
                             lives = 3
-                            Task { await gameCenterViewModel.submitScore(score: points, leaderboardID: "mainHighScore") }
+                            powerups = 0
                             scene.resetGame()
                         } else {
-                            // opcional: pausar/despausar
+                            
                         }
                     }
                 }

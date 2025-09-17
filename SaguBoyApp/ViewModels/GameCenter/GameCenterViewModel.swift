@@ -65,7 +65,7 @@ class GameCenterViewModel {
                             player: GKLocalPlayer.local,
                             leaderboardIDs: [leaderboardID]
                         )
-                print("enviou pont")
+                print("enviou pont \(score)")
             } catch {
                 print("erro quando envia pontuação\(error.localizedDescription)")
             }
