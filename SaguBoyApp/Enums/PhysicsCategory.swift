@@ -12,4 +12,5 @@ enum PhysicsCategory {
     static let player: UInt32 = 1 << 0 // 0001
     static let enemy:  UInt32 = 1 << 1 // 0010
     static let powerup: UInt32 = 1 << 2
+    static let wind: UInt32 = 1 << 3
 }
