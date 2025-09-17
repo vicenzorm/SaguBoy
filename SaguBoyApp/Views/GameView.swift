@@ -46,7 +46,7 @@ struct GameView: View {
                     SpriteView(scene: scene)
                         .ignoresSafeArea()
                         .onAppear {
-                            scene = makeScene(size: geo.size)
+                            scene = makeScene(size: CGSize(width: geo.size.width, height: geo.size.height))
                         }
                         .onChange(of: geo.size) { newSize in
                             scene.size = newSize
