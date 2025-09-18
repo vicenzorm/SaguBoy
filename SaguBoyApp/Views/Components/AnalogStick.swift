@@ -20,12 +20,12 @@ struct AnalogStick: View {
     var body: some View {
         ZStack(alignment: .center) {
             // Base (hexágono)
-            Image(.dpad)
+            Image(.hexagon)
                 .resizable()
                 .frame(width: 120, height: 120, alignment: .center)
 
             // Stick (joystick)
-            Image(.dpad)
+            Image(.bola)
                 .resizable()
                 .frame(width: 80, height: 80, alignment: .center)
 //                .aspectRatio(contentMode: .fit)

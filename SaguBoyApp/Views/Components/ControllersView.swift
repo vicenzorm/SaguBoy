@@ -41,7 +41,7 @@ struct ControllersView: View {
                     VStack {
                         Spacer()
                         Button {} label: {
-                            Image(.buttonAB)
+                            Image(.buttonA)
                                 .resizable()
                                 .frame(width: 71, height: 71)
                                 .scaledToFill()
@@ -54,7 +54,7 @@ struct ControllersView: View {
                     }
                     VStack {
                         Button {} label: {
-                            Image(.buttonAB)
+                            Image(.buttonA)
                                 .resizable()
                                 .frame(width: 71, height: 71)
                                 .scaledToFill()

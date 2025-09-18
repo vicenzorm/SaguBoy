@@ -96,7 +96,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let atlas = SKTextureAtlas(named: "mainCharacter")
         let playerTexture = atlas.textureNamed("idle1")
         
-        let node = PlayerNode(texture: playerTexture, color: .white, size: playerTexture.size())
+        let node = PlayerNode(texture: playerTexture, color: .white, size: CGSize(width: 30, height: 30))
         
         node.position = CGPoint(x: size.width * 0.5, y: size.height * 0.2)
         

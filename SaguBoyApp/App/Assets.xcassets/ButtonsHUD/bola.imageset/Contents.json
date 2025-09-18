@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "D-Pad.png",
+      "filename" : "Joystick Redondo.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "D-Pad@2x.png",
+      "filename" : "Joystick Redondo@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "D-Pad@3x.png",
+      "filename" : "Joystick Redondo@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
