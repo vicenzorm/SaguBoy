@@ -70,6 +70,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Ciclo de vida
     override func didMove(to view: SKView) {
+        print(Bundle.main.bundlePath)
         backgroundColor = .black
         scaleMode = .resizeFill
         

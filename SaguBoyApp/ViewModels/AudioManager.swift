@@ -57,7 +57,7 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
     }
     
     private func playTrack(trackName: String) {
-        guard let musicURL = Bundle.main.url(forResource: "Music/\(trackName)", withExtension: "mp3") else {
+        guard let musicURL = Bundle.main.url(forResource: trackName, withExtension: "mp3") else {
             print("nao foi possivel achar a musica \(trackName)")
             return
         }
