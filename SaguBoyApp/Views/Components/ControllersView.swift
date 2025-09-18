@@ -22,64 +22,60 @@ struct ControllersView: View {
                 .resizable()
                 .frame(width: 122, height: 23)
             
-            HStack {
-                // Analógico no lugar do D-Pad
-                AnalogStick { dir, pressed in
-                    if let d = dir {
-                        onDirection(d, pressed)
-                        
-                    }
-                }
-                .frame(width: analogSize, height: analogSize)
-                .padding(8)
-                .accessibilityLabel("Analógico")
-                
-                Spacer()
-                
-                // Botões A e B
+            VStack(spacing: 57){
                 HStack {
-                    VStack {
-                        Spacer()
-                        Button {} label: {
-                            Image(.buttonA)
-                                .resizable()
-                                .frame(width: 71, height: 71)
-                                .scaledToFill()
-                                .accessibilityLabel("Botão B")
+                    // Analógico no lugar do D-Pad
+                    AnalogStick { dir, pressed in
+                        if let d = dir {
+                            onDirection(d, pressed)
+                            
                         }
-                        .buttonStyle(HoldButtonStyle { isDown in onB(isDown) })
-                        Text("B")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundStyle(.buttonclr)
                     }
-                    VStack {
-                        Button {} label: {
-                            Image(.buttonA)
-                                .resizable()
-                                .frame(width: 71, height: 71)
-                                .scaledToFill()
-                                .accessibilityLabel("Botão A")
+                    .frame(width: analogSize, height: analogSize)
+                    .padding(8)
+                    .accessibilityLabel("Analógico")
+                    
+                    Spacer()
+                    
+                    // Botões A e B
+                    HStack {
+                        VStack {
+                            Spacer()
+                            Button {} label: {
+                                Image(.buttonB)
+                                    .resizable()
+                                    .frame(width: 71, height: 71)
+                                    .scaledToFill()
+                                    .accessibilityLabel("Botão B")
+                            }
+                            .buttonStyle(HoldButtonStyle { isDown in onB(isDown) })
                         }
-                        .buttonStyle(HoldButtonStyle { isDown in onA(isDown) })
-                        Text("A")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundStyle(.buttonclr)
-                        Spacer()
+                        VStack {
+                            Button {} label: {
+                                Image(.buttonA)
+                                    .resizable()
+                                    .frame(width: 71, height: 71)
+                                    .scaledToFill()
+                                    .accessibilityLabel("Botão A")
+                            }
+                            .buttonStyle(HoldButtonStyle { isDown in onA(isDown) })
+                            Spacer()
+                        }
                     }
+                    .frame(width: 138, height: 143)
+                    .padding(.trailing, 27)
                 }
-                .frame(width: 142, height: 176)
-                .padding(.trailing, 27)
+                
+                // Botão Start
+                Button {} label: {
+                    Image(.startButton)
+                        .resizable()
+                        .frame(width: 60, height: 22)
+                        .scaledToFill()
+                        .accessibilityLabel("Start")
+                }
+                .buttonStyle(HoldButtonStyle { isDown in onStart(isDown) })
             }
-            
-            // Botão Start
-            Button {} label: {
-                Image(.startButton)
-                    .resizable()
-                    .frame(width: 42, height: 19)
-                    .scaledToFill()
-                    .accessibilityLabel("Start")
-            }
-            .buttonStyle(HoldButtonStyle { isDown in onStart(isDown) })
         }
     }
 }
