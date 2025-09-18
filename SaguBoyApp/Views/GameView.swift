@@ -38,53 +38,83 @@ struct GameView: View {
     @State private var powerups: Int = 0
     @State private var isGameOver: Bool = false
     @State private var scene: GameScene = GameScene()
+    
 
     var body: some View {
         VStack(spacing: 0) {
-            GeometryReader { geo in
-                ZStack(alignment: .topLeading) {
-                    SpriteView(scene: scene)
-                        .ignoresSafeArea()
-                        .onAppear {
-                            scene = makeScene(size: geo.size)
-                        }
-                        .onChange(of: geo.size) { newSize in
-                            scene.size = newSize
-                        }
+            ZStack(alignment: .topLeading) {
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(.consoleBackground)
+                    .frame(width: 380, height: 476)
+                    .shadow(radius: 8)
 
-                    HStack (spacing: 8) {
-                        Text("Vidas: \(lives)")
-                            .font(.headline.monospacedDigit())
-                            .foregroundStyle(.white)
-                            .padding(12)
-                        
-                        Text("Pontos: \(points)")
-                            .font(.headline.monospacedDigit())
-                            .foregroundStyle(.white)
-                            .padding(12)
-                        
-                        Text("Power: \(powerups)/1")
-                            .font(.headline.monospacedDigit())
-                            .foregroundStyle(.white)
-                            .padding(12)
+                SpriteView(scene: scene)
+                    .frame(width: 364, height: 415)
+                    .clipped()
+                    .onAppear {
+                        // tamanho da cena igual à área útil visível
+                        scene = makeScene(size: CGSize(width: 364, height: 415))
                     }
+                    .padding(.top, 8)
+                    .padding(.horizontal, 8)
 
-                    if isGameOver {
+                // HUD (fica acima do SpriteView)
+                HStack(spacing: 8) {
+                    Text("Vidas: ")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .padding(.leading, 12)
+
+                    ForEach(0..<lives, id: \.self ) {_ in
+                        Image("heart")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 12, height: 12)
+                    }
+                        .font(.headline.monospacedDigit())
+                                            
+                    Text("Pontos: \(points)")
+                        .font(.headline.monospacedDigit())
+                        .foregroundStyle(.white)
+                        .padding(6)
+                    Text("Power: \(powerups)/1")
+                        .font(.headline.monospacedDigit())
+                        .foregroundStyle(.white)
+                        .padding(6)
+                }
+                
+                Text("SaguBoy")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.consoleText)
+                    .padding(.top, 450)
+                    .padding(.leading, 8)
+                Text("Color SB")
+                    .font(.system(size: 8, weight: .medium))
+                    .foregroundStyle(.consoleText)
+                    .padding(.top, 444)
+                    .padding(.leading, 77)
+                    
+
+                // Overlay de Game Over cobrindo só a área do jogo
+                if isGameOver {
+                    VStack(spacing: 12) {
                         Text("GAME OVER")
                             .font(.largeTitle.bold())
                             .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color.black.opacity(0.5))
-                            .onTapGesture {
-                                isGameOver = false
-                                lives = 3
-                                scene.resetGame()
-                            }
+                    }
+                    .frame(width: 364, height: 415)
+                    .background(Color.black.opacity(0.5))
+                    .padding(.top, 8)
+                    .padding(.horizontal, 8)
+                    .onTapGesture {
+                        isGameOver = false
+                        lives = 3
+                        powerups = 0
+                        scene.resetGame()
                     }
                 }
             }
-            .frame(height: 449)
-
+            
             Spacer()
 
             ControllersView(
@@ -99,6 +129,7 @@ struct GameView: View {
                 },
                 onB: { pressed in
                     if pressed {
+                        scene.handleB(pressed: pressed) 
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     }
                 },
@@ -117,7 +148,9 @@ struct GameView: View {
                 }
             )
         }
-        .background(Image(.metalico).resizable().scaledToFill().ignoresSafeArea())
+        .padding(.top, 8)
+        .background(Image(.metalico).resizable().scaledToFill().ignoresSafeArea(.container, edges: .bottom))
+        .background(Color.black)
         .onAppear { gameCenterViewModel.authPlayer() }
     }
 }

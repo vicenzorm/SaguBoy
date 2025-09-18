@@ -24,6 +24,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var playerLifes = 3 { didSet { onLivesChanged?(playerLifes) } }
     private let playerMaxLifes = 3
     private var player: PlayerNode!
+    
+    // Variável para controlar a velocidade atual (permite modificação)
+    private var currentPlayerSpeed: CGFloat = 180
         
     // MARK: - Points
     private let pointsPerSecond = 1000.0
@@ -48,22 +51,42 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Input
     private var activeDirections = Set<Direction>()
     
+    // MARK: - Sounds
+    private let hitSound = SKAction.playSoundFileNamed("hit.wav", waitForCompletion: false)
+    private let powerUpSound = SKAction.playSoundFileNamed("powerup.wav", waitForCompletion: false)
+    private let powerUpSpawnSound = SKAction.playSoundFileNamed("powerupspawn.wav", waitForCompletion: false)
+    private let WindHitSound = SKAction.playSoundFileNamed("windHit.wav", waitForCompletion: false)
+
     // MARK: - Time
     private var lastUpdateTime: TimeInterval = 0
     private var currentTimeCache: TimeInterval = 0
     
+    // MARK: - Propriedades para o sistema de Dash
+    private var dashCooldown: TimeInterval = 1.5 // Tempo de recarga do dash
+    private var lastDashTime: TimeInterval = 0
+    private var isDashing: Bool = false
+    private var dashDuration: TimeInterval = 0.2 // Duração do dash
+    private var dashSpeedMultiplier: CGFloat = 3.0 // Multiplicador de velocidade durante o dash
+    
+    // MARK: - Background GIF
+    private var backgroundNode: GIFNode?
+    
     // MARK: - Ciclo de vida
     override func didMove(to view: SKView) {
-        backgroundColor = .black
+        print(Bundle.main.bundlePath)
+        // Configura o fundo com GIF
+        setupGIFBackground()
         scaleMode = .resizeFill
         
         physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self
         
         isGameRunning = true
+        currentPlayerSpeed = playerSpeed // Inicializa a velocidade
         setupPlayer()
         scheduleSpawns()
         schedulePowerupSpawns()
+        AudioManager.shared.startBackgroundMusic()
     }
     
     // MARK: - Público (entrada)
@@ -74,7 +97,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     func resetGame() {
         removeAllActions()
         removeAllChildren()
+        
+        // Recria o fundo
+        setupGIFBackground()
+        
         isGameRunning = true
+        currentPlayerSpeed = playerSpeed // Reseta a velocidade
+        isDashing = false // Reseta o estado de dash
 
         setupPlayer()
         scheduleSpawns()
@@ -89,6 +118,82 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         guard pressed, powerupCharges > 0 else { return }
         powerupCharges = 0
         grantPowerInvincibility()
+    }
+    
+    func handleB(pressed: Bool) {
+        guard pressed else { return }
+        
+        let currentTime = CACurrentMediaTime()
+        // Verificar se o dash está disponível (cooldown)
+        if currentTime - lastDashTime >= dashCooldown {
+            performDash()
+            lastDashTime = currentTime
+        }
+    }
+    
+    private func performDash() {
+        // Verificar se o player está se movendo (há direções ativas)
+        guard !activeDirections.isEmpty else { return }
+        
+        isDashing = true
+        
+        // Aplicar o boost de velocidade
+        currentPlayerSpeed = playerSpeed * dashSpeedMultiplier
+        
+        // Efeito visual durante o dash
+        let flashAction = SKAction.sequence([
+            SKAction.colorize(with: .cyan, colorBlendFactor: 0.8, duration: 0.1),
+            SKAction.colorize(with: .white, colorBlendFactor: 0, duration: 0.1)
+        ])
+        player.run(flashAction)
+        
+        // Efeito de partículas durante o dash (opcional - se você tiver o arquivo)
+        if let dashParticles = SKEmitterNode(fileNamed: "DashParticles") {
+            dashParticles.position = player.position
+            dashParticles.zPosition = -1
+            addChild(dashParticles)
+            
+            // Remover partículas após um tempo
+            dashParticles.run(SKAction.sequence([
+                SKAction.wait(forDuration: dashDuration),
+                SKAction.removeFromParent()
+            ]))
+        }
+        
+        // Restaurar velocidade normal após o dash
+        run(SKAction.sequence([
+            SKAction.wait(forDuration: dashDuration),
+            SKAction.run { [weak self] in
+                guard let self = self else { return }
+                self.currentPlayerSpeed = self.playerSpeed
+                self.isDashing = false
+                
+                // Efeito visual de fim de dash
+                self.player.run(SKAction.colorize(with: .white, colorBlendFactor: 0, duration: 0.1))
+            }
+        ]))
+    }
+    
+    private func setupGIFBackground() {
+        // Remove o fundo anterior se existir
+        backgroundNode?.removeFromParent()
+        
+        // Cria o nó do GIF
+        backgroundNode = GIFNode(gifName: "backgroundPlaceholder", size: size)
+        backgroundNode?.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        backgroundNode?.zPosition = -1000 // Muito atrás de tudo
+        
+        if let backgroundNode = backgroundNode {
+            addChild(backgroundNode)
+        }
+    }
+    
+    override func didChangeSize(_ oldSize: CGSize) {
+        super.didChangeSize(oldSize)
+        
+        // Atualiza o tamanho do fundo quando a cena mudar de tamanho
+        backgroundNode?.size = size
+        backgroundNode?.position = CGPoint(x: size.width / 2, y: size.height / 2)
     }
     
     // MARK: - Setup
@@ -217,7 +322,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         // Gere o vento dentro da SafeArea (Entre states do jogador e os controles da metade da tela)
         let randomY = CGFloat.random(in: 50...self.size.height - safeArea)
         
-        wind.position = CGPoint(x: self.size.width + 40, y: randomY)
+        let randomX_rigth = CGFloat(self.size.width + 40)
+        let randomX_left = CGFloat(0)
+        
+        guard let randomX = [randomX_left, randomX_rigth].randomElement() else { return }
+        
+        wind.position = CGPoint(x: randomX, y: randomY)
+        print("RandomX -> ",randomX)
         
         // Corpo físico
         
@@ -231,11 +342,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         
         addChild(wind)
         
-        let moveLeft = SKAction.moveBy(x: -self.size.width - 80, y: 0, duration: 4)
+        // Move o vento de forma aleatória (Para direita ou esquerda)
+        let move = (randomX == randomX_rigth) ? SKAction.moveBy(x: -self.size.width - 80, y: 0, duration: 4)
+        : SKAction.moveBy(x: self.size.width + 80, y: 0, duration: 4)
+        
+        
         let remove = SKAction.removeFromParent()
-        wind.run(SKAction.sequence([moveLeft, remove]))
-        
-        
+        wind.run(SKAction.sequence([move, remove]))
         
     }
 
@@ -277,6 +390,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let speed: CGFloat = 100
         let duration = TimeInterval(distance / speed)
         dot.run(.sequence([.moveBy(x: 0, y: -distance, duration: duration), .removeFromParent()]))
+        run(powerUpSpawnSound)
     }
     
     // MARK: - Update loop
@@ -327,6 +441,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             dx *= invSqrt2
             dy *= invSqrt2
         }
+        
         // ESTADOS
         if dy > 0 {
             player.stateMachine.enter(IdleState.self)
@@ -340,7 +455,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             player.stateMachine.enter(IdleState.self)
         }
         
-        let dist = CGFloat(dt) * playerSpeed
+        // Usar currentPlayerSpeed em vez de playerSpeed (constante)
+        let dist = CGFloat(dt) * currentPlayerSpeed
         var pos = p.position
         pos.x += dx * dist
         pos.y += dy * dist
@@ -390,6 +506,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         if playerLifes <= 0 {
             gameOver()
         }
+        run(hitSound)
     }
     
     private func collectPowerup(_ contact: SKPhysicsContact) {
@@ -403,6 +520,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let s2 = SKAction.scale(to: 1.0, duration: 0.08)
         
         player.run(.sequence([s1, s2]))
+        run(powerUpSound)
     }
     
     private func startInvincibilityBlink() {
@@ -442,7 +560,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         wind.run(SKAction.sequence([wait, disablePhysics]))
-        
+        run(WindHitSound)
     }
     
     private func disableWindPhysicBody(_ contact: SKPhysicsContact) {
