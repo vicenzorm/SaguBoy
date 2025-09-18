@@ -22,11 +22,13 @@ struct AnalogStick: View {
             // Base (hexágono)
             Image(.hexagon)
                 .resizable()
+                .scaledToFill()
                 .frame(width: 120, height: 120, alignment: .center)
 
             // Stick (joystick)
             Image(.bola)
                 .resizable()
+                .scaledToFill()
                 .frame(width: 80, height: 80, alignment: .center)
 //                .aspectRatio(contentMode: .fit)
                 .offset(dragOffset)
