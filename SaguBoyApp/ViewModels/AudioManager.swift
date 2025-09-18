@@ -46,6 +46,16 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
         playTrack(trackName: "RUSHmusic")
     }
     
+    public func playMENUTrack() {
+        stopMusic()
+        playTrack(trackName: "MENUmusic")
+    }
+    
+    public func playDEFEATTrack() {
+        stopMusic()
+        playTrack(trackName: "DEFEATmusic")
+    }
+    
     private func playTrack(trackName: String) {
         guard let musicURL = Bundle.main.url(forResource: "Moosic/\(trackName)", withExtension: "mp3") else {
             print("nao foi possivel achar a musica \(trackName)")

@@ -48,6 +48,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Input
     private var activeDirections = Set<Direction>()
     
+    // MARK: - Sounds
+    private let hitSound = SKAction.playSoundFileNamed("hit.wav", waitForCompletion: false)
+    private let powerUpSound = SKAction.playSoundFileNamed("powerup.wav", waitForCompletion: false)
+    private let powerUpSpawnSound = SKAction.playSoundFileNamed("powerupspawn.wav", waitForCompletion: false)
+    private let WindHitSound = SKAction.playSoundFileNamed("windhit.wav", waitForCompletion: false)
+
     // MARK: - Time
     private var lastUpdateTime: TimeInterval = 0
     private var currentTimeCache: TimeInterval = 0
@@ -64,6 +70,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         setupPlayer()
         scheduleSpawns()
         schedulePowerupSpawns()
+        AudioManager.shared.startBackgroundMusic()
     }
     
     // MARK: - Público (entrada)
@@ -235,8 +242,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let remove = SKAction.removeFromParent()
         wind.run(SKAction.sequence([moveLeft, remove]))
         
-        
-        
     }
 
     
@@ -277,6 +282,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let speed: CGFloat = 100
         let duration = TimeInterval(distance / speed)
         dot.run(.sequence([.moveBy(x: 0, y: -distance, duration: duration), .removeFromParent()]))
+        run(powerUpSpawnSound)
     }
     
     // MARK: - Update loop
@@ -390,6 +396,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         if playerLifes <= 0 {
             gameOver()
         }
+        run(hitSound)
     }
     
     private func collectPowerup(_ contact: SKPhysicsContact) {
@@ -403,6 +410,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let s2 = SKAction.scale(to: 1.0, duration: 0.08)
         
         player.run(.sequence([s1, s2]))
+        run(powerUpSound)
     }
     
     private func startInvincibilityBlink() {
@@ -442,7 +450,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         wind.run(SKAction.sequence([wait, disablePhysics]))
-        
+        run(WindHitSound)
     }
     
     private func disableWindPhysicBody(_ contact: SKPhysicsContact) {
