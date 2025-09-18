@@ -68,10 +68,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var dashDuration: TimeInterval = 0.2 // Duração do dash
     private var dashSpeedMultiplier: CGFloat = 3.0 // Multiplicador de velocidade durante o dash
     
+    // MARK: - Background GIF
+    private var backgroundNode: GIFNode?
+    
     // MARK: - Ciclo de vida
     override func didMove(to view: SKView) {
         print(Bundle.main.bundlePath)
-        backgroundColor = .black
+        // Configura o fundo com GIF
+        setupGIFBackground()
         scaleMode = .resizeFill
         
         physicsWorld.gravity = .zero
@@ -93,6 +97,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     func resetGame() {
         removeAllActions()
         removeAllChildren()
+        
+        // Recria o fundo
+        setupGIFBackground()
+        
         isGameRunning = true
         currentPlayerSpeed = playerSpeed // Reseta a velocidade
         isDashing = false // Reseta o estado de dash
@@ -166,6 +174,27 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         ]))
     }
     
+    private func setupGIFBackground() {
+        // Remove o fundo anterior se existir
+        backgroundNode?.removeFromParent()
+        
+        // Cria o nó do GIF
+        backgroundNode = GIFNode(gifName: "backgroundPlaceholder", size: size)
+        backgroundNode?.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        backgroundNode?.zPosition = -1000 // Muito atrás de tudo
+        
+        if let backgroundNode = backgroundNode {
+            addChild(backgroundNode)
+        }
+    }
+    
+    override func didChangeSize(_ oldSize: CGSize) {
+        super.didChangeSize(oldSize)
+        
+        // Atualiza o tamanho do fundo quando a cena mudar de tamanho
+        backgroundNode?.size = size
+        backgroundNode?.position = CGPoint(x: size.width / 2, y: size.height / 2)
+    }
     
     // MARK: - Setup
     private func setupPlayer() {
