@@ -24,6 +24,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var playerLifes = 3 { didSet { onLivesChanged?(playerLifes) } }
     private let playerMaxLifes = 3
     private var player: PlayerNode!
+    
+    // Variável para controlar a velocidade atual (permite modificação)
+    private var currentPlayerSpeed: CGFloat = 180
         
     // MARK: - Points
     private let pointsPerSecond = 1000.0
@@ -58,6 +61,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var lastUpdateTime: TimeInterval = 0
     private var currentTimeCache: TimeInterval = 0
     
+    // MARK: - Propriedades para o sistema de Dash
+    private var dashCooldown: TimeInterval = 1.5 // Tempo de recarga do dash
+    private var lastDashTime: TimeInterval = 0
+    private var isDashing: Bool = false
+    private var dashDuration: TimeInterval = 0.2 // Duração do dash
+    private var dashSpeedMultiplier: CGFloat = 3.0 // Multiplicador de velocidade durante o dash
+    
     // MARK: - Ciclo de vida
     override func didMove(to view: SKView) {
         backgroundColor = .black
@@ -67,6 +77,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         physicsWorld.contactDelegate = self
         
         isGameRunning = true
+        currentPlayerSpeed = playerSpeed // Inicializa a velocidade
         setupPlayer()
         scheduleSpawns()
         schedulePowerupSpawns()
@@ -82,6 +93,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         removeAllActions()
         removeAllChildren()
         isGameRunning = true
+        currentPlayerSpeed = playerSpeed // Reseta a velocidade
+        isDashing = false // Reseta o estado de dash
 
         setupPlayer()
         scheduleSpawns()
@@ -97,6 +110,61 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         powerupCharges = 0
         grantPowerInvincibility()
     }
+    
+    func handleB(pressed: Bool) {
+        guard pressed else { return }
+        
+        let currentTime = CACurrentMediaTime()
+        // Verificar se o dash está disponível (cooldown)
+        if currentTime - lastDashTime >= dashCooldown {
+            performDash()
+            lastDashTime = currentTime
+        }
+    }
+    
+    private func performDash() {
+        // Verificar se o player está se movendo (há direções ativas)
+        guard !activeDirections.isEmpty else { return }
+        
+        isDashing = true
+        
+        // Aplicar o boost de velocidade
+        currentPlayerSpeed = playerSpeed * dashSpeedMultiplier
+        
+        // Efeito visual durante o dash
+        let flashAction = SKAction.sequence([
+            SKAction.colorize(with: .cyan, colorBlendFactor: 0.8, duration: 0.1),
+            SKAction.colorize(with: .white, colorBlendFactor: 0, duration: 0.1)
+        ])
+        player.run(flashAction)
+        
+        // Efeito de partículas durante o dash (opcional - se você tiver o arquivo)
+        if let dashParticles = SKEmitterNode(fileNamed: "DashParticles") {
+            dashParticles.position = player.position
+            dashParticles.zPosition = -1
+            addChild(dashParticles)
+            
+            // Remover partículas após um tempo
+            dashParticles.run(SKAction.sequence([
+                SKAction.wait(forDuration: dashDuration),
+                SKAction.removeFromParent()
+            ]))
+        }
+        
+        // Restaurar velocidade normal após o dash
+        run(SKAction.sequence([
+            SKAction.wait(forDuration: dashDuration),
+            SKAction.run { [weak self] in
+                guard let self = self else { return }
+                self.currentPlayerSpeed = self.playerSpeed
+                self.isDashing = false
+                
+                // Efeito visual de fim de dash
+                self.player.run(SKAction.colorize(with: .white, colorBlendFactor: 0, duration: 0.1))
+            }
+        ]))
+    }
+    
     
     // MARK: - Setup
     private func setupPlayer() {
@@ -343,6 +411,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             dx *= invSqrt2
             dy *= invSqrt2
         }
+        
         // ESTADOS
         if dy > 0 {
             player.stateMachine.enter(IdleState.self)
@@ -356,7 +425,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             player.stateMachine.enter(IdleState.self)
         }
         
-        let dist = CGFloat(dt) * playerSpeed
+        // Usar currentPlayerSpeed em vez de playerSpeed (constante)
+        let dist = CGFloat(dt) * currentPlayerSpeed
         var pos = p.position
         pos.x += dx * dist
         pos.y += dy * dist

@@ -99,6 +99,7 @@ struct GameView: View {
                 },
                 onB: { pressed in
                     if pressed {
+                        scene.handleB(pressed: pressed) 
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     }
                 },
