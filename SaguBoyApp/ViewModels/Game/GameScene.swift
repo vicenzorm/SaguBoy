@@ -55,7 +55,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private let hitSound = SKAction.playSoundFileNamed("hit.wav", waitForCompletion: false)
     private let powerUpSound = SKAction.playSoundFileNamed("powerup.wav", waitForCompletion: false)
     private let powerUpSpawnSound = SKAction.playSoundFileNamed("powerupspawn.wav", waitForCompletion: false)
-    private let WindHitSound = SKAction.playSoundFileNamed("windhit.wav", waitForCompletion: false)
+    private let WindHitSound = SKAction.playSoundFileNamed("windHit.wav", waitForCompletion: false)
 
     // MARK: - Time
     private var lastUpdateTime: TimeInterval = 0
