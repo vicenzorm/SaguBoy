@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "D-Pad.png",
+      "filename" : "Fundo Joy Completo.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "D-Pad@2x.png",
+      "filename" : "Fundo Joy Completo@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "D-Pad@3x.png",
+      "filename" : "Fundo Joy Completo@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

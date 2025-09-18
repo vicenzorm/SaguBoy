@@ -13,115 +13,69 @@ struct ControllersView: View {
     let onA: (Bool) -> Void
     let onB: (Bool) -> Void
     let onStart: (Bool) -> Void
-
-    private let dpadSize: CGFloat = 148
-    private let deadZone: CGFloat = 18
-
-    @State private var currentDirection: Direction?
+    private let analogSize: CGFloat = 148
     
-    private var dpadImage: Image {
-        switch currentDirection {
-        case .some(.up):    return Image(.dpadCima)
-        case .some(.down):  return Image(.dpadBaixo)
-        case .some(.left):  return Image(.dpadEsquerda)
-        case .some(.right): return Image(.dpadDireita)
-        case .none:         return Image(.dpad)
-        }
-    }
-
     var body: some View {
         VStack(spacing: 40) {
+            // Logo
             Image(.saguboy)
                 .resizable()
                 .frame(width: 122, height: 23)
-            HStack {
-                ZStack {
-                    GeometryReader { geo in
-                        let size = geo.size
-                        dpadImage
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: size.width, height: size.height)
-                            .contentShape(Rectangle())
-                            .gesture(
-                                DragGesture(minimumDistance: 0, coordinateSpace: .local)
-                                    .onChanged { value in
-                                        let center = CGPoint(x: size.width/2, y: size.height/2)
-                                        let dx = value.location.x - center.x
-                                        let dy = value.location.y - center.y
-                                        let dist = sqrt(dx*dx + dy*dy)
-                                        guard dist >= deadZone else {
-                                            if let cur = currentDirection {
-                                                currentDirection = nil
-                                                onDirection(cur, false)
-                                            }
-                                            return
-                                        }
-                                        let newDir: Direction = abs(dx) > abs(dy) ? (dx > 0 ? .right : .left)
-                                                                                 : (dy > 0 ? .down  : .up)
-                                        if newDir != currentDirection {
-                                            if let cur = currentDirection { onDirection(cur, false) }
-                                            currentDirection = newDir
-                                            onDirection(newDir, true)
-                                        }
-                                    }
-                                    .onEnded { _ in
-                                        if let cur = currentDirection {
-                                            currentDirection = nil
-                                            onDirection(cur, false)
-                                        }
-                                    }
-                            )
-                    }
-                }
-                .frame(width: dpadSize, height: dpadSize)
-                .padding(8)
-                .accessibilityLabel("Direcional")
-
-                Spacer()
-
+            
+            VStack(spacing: 57){
                 HStack {
-                    VStack {
-                        Spacer()
-                        Button {} label: {
-                            Image(.buttonAB)
-                                .resizable()
-                                .frame(width: 71, height: 71)
-                                .scaledToFill()
-                                .accessibilityLabel("Botão B")
+                    // Analógico no lugar do D-Pad
+                    AnalogStick { dir, pressed in
+                        if let d = dir {
+                            onDirection(d, pressed)
+                            
                         }
-                        .buttonStyle(HoldButtonStyle { isDown in onB(isDown) })
-                        Text("B")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundStyle(.buttonclr)
                     }
-                    VStack {
-                        Button {} label: {
-                            Image(.buttonAB)
-                                .resizable()
-                                .frame(width: 71, height: 71)
-                                .scaledToFill()
-                                .accessibilityLabel("Botão A")
+                    .frame(width: analogSize, height: analogSize)
+                    .padding(8)
+                    .accessibilityLabel("Analógico")
+                    
+                    Spacer()
+                    
+                    // Botões A e B
+                    HStack {
+                        VStack {
+                            Spacer()
+                            Button {} label: {
+                                Image(.buttonB)
+                                    .resizable()
+                                    .frame(width: 71, height: 71)
+                                    .scaledToFill()
+                                    .accessibilityLabel("Botão B")
+                            }
+                            .buttonStyle(HoldButtonStyle { isDown in onB(isDown) })
                         }
-                        .buttonStyle(HoldButtonStyle { isDown in onA(isDown) })
-                        Text("A")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundStyle(.buttonclr)
-                        Spacer()
+                        VStack {
+                            Button {} label: {
+                                Image(.buttonA)
+                                    .resizable()
+                                    .frame(width: 71, height: 71)
+                                    .scaledToFill()
+                                    .accessibilityLabel("Botão A")
+                            }
+                            .buttonStyle(HoldButtonStyle { isDown in onA(isDown) })
+                            Spacer()
+                        }
                     }
+                    .frame(width: 138, height: 143)
+                    .padding(.trailing, 27)
                 }
-                .frame(width: 142, height: 176)
-                .padding(.trailing, 27)
+                
+                // Botão Start
+                Button {} label: {
+                    Image(.startButton)
+                        .resizable()
+                        .frame(width: 60, height: 22)
+                        .scaledToFill()
+                        .accessibilityLabel("Start")
+                }
+                .buttonStyle(HoldButtonStyle { isDown in onStart(isDown) })
             }
-
-            Button {} label: {
-                Image(.startButton)
-                    .resizable()
-                    .frame(width: 42, height: 19)
-                    .scaledToFill()
-                    .accessibilityLabel("Start")
-            }
-            .buttonStyle(HoldButtonStyle { isDown in onStart(isDown) })
         }
     }
 }
