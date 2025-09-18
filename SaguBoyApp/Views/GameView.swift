@@ -38,6 +38,7 @@ struct GameView: View {
     @State private var powerups: Int = 0
     @State private var isGameOver: Bool = false
     @State private var scene: GameScene = GameScene()
+    
 
     var body: some View {
         VStack(spacing: 0) {
@@ -59,18 +60,27 @@ struct GameView: View {
 
                 // HUD (fica acima do SpriteView)
                 HStack(spacing: 8) {
-                    Text("Vidas: \(lives)")
-                        .font(.headline.monospacedDigit())
+                    Text("Vidas: ")
+                        .fontWeight(.semibold)
                         .foregroundStyle(.white)
-                        .padding(12)
+                        .padding(.leading, 12)
+
+                    ForEach(0..<lives, id: \.self ) {_ in
+                        Image("heart")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 12, height: 12)
+                    }
+                        .font(.headline.monospacedDigit())
+                                            
                     Text("Pontos: \(points)")
                         .font(.headline.monospacedDigit())
                         .foregroundStyle(.white)
-                        .padding(12)
+                        .padding(6)
                     Text("Power: \(powerups)/1")
                         .font(.headline.monospacedDigit())
                         .foregroundStyle(.white)
-                        .padding(12)
+                        .padding(6)
                 }
                 
                 Text("SaguBoy")
