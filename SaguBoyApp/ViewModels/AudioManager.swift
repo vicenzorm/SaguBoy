@@ -64,7 +64,7 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
         do {
             musicPlayer = try AVAudioPlayer(contentsOf: musicURL)
             musicPlayer?.delegate = self
-            musicPlayer?.volume = 0.3
+            musicPlayer?.volume = 0.5
             musicPlayer?.prepareToPlay()
             musicPlayer?.play()
         } catch {

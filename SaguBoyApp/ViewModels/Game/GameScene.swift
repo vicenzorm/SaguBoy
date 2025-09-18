@@ -52,10 +52,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var activeDirections = Set<Direction>()
     
     // MARK: - Sounds
-    private let hitSound = SKAction.playSoundFileNamed("hit.wav", waitForCompletion: false)
-    private let powerUpSound = SKAction.playSoundFileNamed("powerup.wav", waitForCompletion: false)
+    private let hitSound = SKAction.playSoundFileNamed("hit.mp3", waitForCompletion: false)
+    private let powerUpSound = SKAction.playSoundFileNamed("powerUp.mp3", waitForCompletion: false)
     private let powerUpSpawnSound = SKAction.playSoundFileNamed("powerupspawn.wav", waitForCompletion: false)
     private let WindHitSound = SKAction.playSoundFileNamed("windHit.wav", waitForCompletion: false)
+    private let dashSound = SKAction.playSoundFileNamed("dash.mp3", waitForCompletion: false)
+    private let invicibilitySound = SKAction.playSoundFileNamed("invicibility.mp3", waitForCompletion: false)
 
     // MARK: - Time
     private var lastUpdateTime: TimeInterval = 0
@@ -116,6 +118,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func handleA(pressed: Bool) {
         guard pressed, powerupCharges > 0 else { return }
+        if powerupCharges > 0 {
+            run(invicibilitySound)
+        }
         powerupCharges = 0
         grantPowerInvincibility()
     }
@@ -129,6 +134,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             performDash()
             lastDashTime = currentTime
         }
+        run(dashSound)
     }
     
     private func performDash() {
