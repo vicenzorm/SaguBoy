@@ -224,7 +224,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         // Gere o vento dentro da SafeArea (Entre states do jogador e os controles da metade da tela)
         let randomY = CGFloat.random(in: 50...self.size.height - safeArea)
         
-        wind.position = CGPoint(x: self.size.width + 40, y: randomY)
+        let randomX_rigth = CGFloat(self.size.width + 40)
+        let randomX_left = CGFloat(0)
+        
+        guard let randomX = [randomX_left, randomX_rigth].randomElement() else { return }
+        
+        wind.position = CGPoint(x: randomX, y: randomY)
+        print("RandomX -> ",randomX)
         
         // Corpo físico
         
@@ -238,9 +244,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         
         addChild(wind)
         
-        let moveLeft = SKAction.moveBy(x: -self.size.width - 80, y: 0, duration: 4)
+        // Move o vento de forma aleatória (Para direita ou esquerda)
+        let move = (randomX == randomX_rigth) ? SKAction.moveBy(x: -self.size.width - 80, y: 0, duration: 4)
+        : SKAction.moveBy(x: self.size.width + 80, y: 0, duration: 4)
+        
+        
         let remove = SKAction.removeFromParent()
-        wind.run(SKAction.sequence([moveLeft, remove]))
+        wind.run(SKAction.sequence([move, remove]))
         
     }
 
