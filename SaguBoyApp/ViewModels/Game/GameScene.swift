@@ -238,7 +238,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             .wait(forDuration: spawnIntervalWind)
         ])
         
-        let groupSpawn = SKAction.group([sequenceEnemy, sequenceWind])
+        let sequencePowerUp = SKAction.sequence([
+            .run { [weak self] in
+                self?.spawnPowerup()
+            },
+            .wait(forDuration: powerupSpawnInterval)
+        ])
+        
+        let groupSpawn = SKAction.group([sequenceEnemy, sequenceWind, sequencePowerUp])
         
         run(.repeatForever(groupSpawn), withKey: "spawnLoop")
     }
