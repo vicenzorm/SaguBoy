@@ -7,6 +7,7 @@
 
 import SpriteKit
 import SwiftUI
+import AVFoundation
 
 final class GameScene: SKScene, SKPhysicsContactDelegate {
 
@@ -51,6 +52,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Time
     private var lastUpdateTime: TimeInterval = 0
     private var currentTimeCache: TimeInterval = 0
+    
+    // MARK: -  Music
+    
+    private var backgroundMusicPlayer: AVAudioPlayer?
     
     // MARK: - Ciclo de vida
     override func didMove(to view: SKView) {
