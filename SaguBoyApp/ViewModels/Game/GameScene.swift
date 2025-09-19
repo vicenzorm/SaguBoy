@@ -99,6 +99,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     func resetGame() {
         removeAllActions()
         removeAllChildren()
+        removeAction(forKey: "enemyLoop")
+        removeAction(forKey: "windLoop")
+        removeAction(forKey: "powerupLoop")
         
         // Recria o fundo
         setupGIFBackground()
@@ -238,14 +241,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             .wait(forDuration: spawnIntervalWind)
         ])
         
-        let sequencePowerUp = SKAction.sequence([
-            .run { [weak self] in
-                self?.spawnPowerup()
-            },
-            .wait(forDuration: powerupSpawnInterval)
-        ])
-        
-        let groupSpawn = SKAction.group([sequenceEnemy, sequenceWind, sequencePowerUp])
+        let groupSpawn = SKAction.group([sequenceEnemy, sequenceWind])
         
         run(.repeatForever(groupSpawn), withKey: "spawnLoop")
     }
@@ -365,7 +361,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         
     }
 
-    
     private func schedulePowerupSpawns() {
         let seq = SKAction.sequence([
             .wait(forDuration: powerupSpawnInterval),
