@@ -10,7 +10,7 @@ import GameplayKit
 class RightState: PlayerState {
     
     override func didEnter(from previousState: GKState?) {
-        let rightAnimation = SKAction.animate(with: player.rightTextures, timePerFrame: 0.2)
+        let rightAnimation = SKAction.animate(with: player.rightTextures, timePerFrame: player.timePerFrame)
         let loopAnimation = SKAction.repeatForever(rightAnimation)
         player.run(loopAnimation, withKey: "rightAnimation")
     }

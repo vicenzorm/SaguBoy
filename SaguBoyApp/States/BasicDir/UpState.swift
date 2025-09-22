@@ -11,7 +11,7 @@ import GameplayKit
 class UpState: PlayerState {
     
     override func didEnter(from previousState: GKState?) {
-        let upAnimation = SKAction.animate(with: player.upTextures, timePerFrame: 0.7)
+        let upAnimation = SKAction.animate(with: player.upTextures, timePerFrame: player.timePerFrame)
         let loopAnimation = SKAction.repeatForever(upAnimation)
         player.run(loopAnimation, withKey: "upAnimation")
     }

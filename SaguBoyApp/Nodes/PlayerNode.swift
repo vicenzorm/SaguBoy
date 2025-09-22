@@ -9,6 +9,11 @@ import GameplayKit
 
 class PlayerNode: SKSpriteNode {
     
+    let animationFrameRate = 30.0
+    
+    var timePerFrame: TimeInterval {
+        1.0 / animationFrameRate
+    }
     var stateMachine: GKStateMachine!
     var idleTextures: [SKTexture] = []
     var leftTextures: [SKTexture] = []
@@ -41,21 +46,48 @@ class PlayerNode: SKSpriteNode {
     }
     
     private func loadTextures() {
-        let atlas = SKTextureAtlas(named: "mainCharacter")
-        
-        idleTextures.append(atlas.textureNamed("idle1"))
-        idleTextures.append(atlas.textureNamed("idle2"))
-        idleTextures.append(atlas.textureNamed("idle3"))
-        
-        downTextures.append(atlas.textureNamed("down"))
-        
-        rightTextures.append(atlas.textureNamed("right"))
-        
-        leftTextures.append(atlas.textureNamed("left"))
-        
+        loadUp()
+        loadDown()
+        loadIdle()
+        loadLeft()
+        loadRight()
     }
     
     func update(deltaTime: TimeInterval) {
         stateMachine.update(deltaTime: deltaTime)
     }
+    
+    func loadIdle() {
+        let atlas = SKTextureAtlas(named: "mainCharacter")
+        for i in 1...30 {
+            idleTextures.append(atlas.textureNamed("idle\(i)"))
+        }
+    }
+    
+    func loadDown() {
+        let atlas = SKTextureAtlas(named: "mainCharacter")
+        for i in 1...30 {
+            idleTextures.append(atlas.textureNamed("down\(i)"))
+        }
+    }
+    
+    func loadLeft() {
+        let atlas = SKTextureAtlas(named: "mainCharacter")
+        for i in 1...30 {
+            idleTextures.append(atlas.textureNamed("left\(i)"))
+        }
+    }
+    
+    func loadRight() {
+        let atlas = SKTextureAtlas(named: "mainCharacter")
+        for i in 1...30 {
+            idleTextures.append(atlas.textureNamed("right\(i)"))
+        }
+    }
+    
+    func loadUp() {
+        let atlas = SKTextureAtlas(named: "mainCharacter")
+        for i in 1...30 {
+            idleTextures.append(atlas.textureNamed("up\(i)"))
+        }    }
 }
