@@ -67,27 +67,28 @@ class PlayerNode: SKSpriteNode {
     func loadDown() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
         for i in 1...30 {
-            idleTextures.append(atlas.textureNamed("down\(i)"))
+            downTextures.append(atlas.textureNamed("down\(i)"))
         }
     }
     
     func loadLeft() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
         for i in 1...30 {
-            idleTextures.append(atlas.textureNamed("left\(i)"))
+            leftTextures.append(atlas.textureNamed("left\(i)"))
         }
     }
     
     func loadRight() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
         for i in 1...30 {
-            idleTextures.append(atlas.textureNamed("right\(i)"))
+            rightTextures.append(atlas.textureNamed("right\(i)"))
         }
     }
     
     func loadUp() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
         for i in 1...30 {
-            idleTextures.append(atlas.textureNamed("up\(i)"))
-        }    }
+            upTextures.append(atlas.textureNamed("up\(i)"))
+        }
+    }
 }
