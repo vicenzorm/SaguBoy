@@ -4,7 +4,7 @@
 //
 //  Created by Vicenzo Másera on 09/09/25.
 //
-
+import SwiftData
 import SwiftUI
 
 @main
@@ -13,5 +13,8 @@ struct SaguBoyAppApp: App {
         WindowGroup {
            GameView()
         }
+        .modelContainer(for: [
+            Ponctuation.self
+        ])
     }
 }
