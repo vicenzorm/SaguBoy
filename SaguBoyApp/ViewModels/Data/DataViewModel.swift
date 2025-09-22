@@ -7,14 +7,12 @@
 
 import Foundation
 import SwiftData
+import SwiftUICore
 
 final class DataViewModel: DataViewModelProtocol {
     
-    private var modelContext: ModelContext
+    @Environment(\.modelContext) private var modelContext
     
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-    }
     var score: Ponctuation?
     var scores: [Ponctuation] = []
     

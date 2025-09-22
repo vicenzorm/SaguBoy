@@ -9,9 +9,10 @@ import SwiftUI
 
 @main
 struct SaguBoyAppApp: App {
+    
     var body: some Scene {
         WindowGroup {
-           GameView()
+            GameView()
         }
         .modelContainer(for: [
             Ponctuation.self
