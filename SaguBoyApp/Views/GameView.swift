@@ -6,10 +6,12 @@
 //
 import SwiftUI
 import SpriteKit
+import SwiftData
 
 struct GameView: View {
-
+    
     @State private var gameCenterViewModel = GameCenterViewModel()
+    @State private var dataViewModel = DataViewModel()
 
     private func makeScene(size: CGSize) -> GameScene {
         let scene = GameScene()
@@ -21,6 +23,7 @@ struct GameView: View {
         }
         scene.onGameOver = {
             Task { await gameCenterViewModel.submitScore(score: self.points, leaderboardID: "mainHighScore") }
+            dataViewModel.addScore(value: self.points)
             self.isGameOver = true
         }
         scene.onPointsChanged = { points in

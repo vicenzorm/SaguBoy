@@ -13,6 +13,6 @@ final class Ponctuation {
     var score: Int
     
     init(score: Int) {
-        self.scores = scores
+        self.score = score
     }
 }
