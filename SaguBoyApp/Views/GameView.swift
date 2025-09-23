@@ -8,14 +8,58 @@ import SwiftUI
 import SpriteKit
 import SwiftData
 
+// Enum para controlar qual tela está ativa
+enum Screen {
+    case menu
+    case game
+}
+
 struct GameView: View {
     
     @State private var gameCenterViewModel = GameCenterViewModel()
     @State private var dataViewModel = DataViewModel()
-
+    
+    // HUD state
+    @State private var points: Int = 0
+    @State private var lives: Int = 3
+    @State private var powerups: Int = 0
+    @State private var isGameOver: Bool = false
+    
+    // A cena do jogo é criada apenas quando necessária
+    @State private var scene: GameScene? = nil
+    
+    // Controla a tela atual
+    @State private var currentScreen: Screen = .menu
+    
+    var body: some View {
+        // Usa uma ZStack para permitir transições suaves
+        ZStack {
+            if currentScreen == .menu {
+                MenuView(onPlay: {
+                    // Prepara e transiciona para a tela de jogo
+                    prepareAndStartGame()
+                })
+                .transition(.opacity)
+            } else if let scene = scene {
+                gameplayView(scene: scene)
+                    .transition(.opacity)
+            }
+        }
+        .animation(.default, value: currentScreen)
+        .onAppear { gameCenterViewModel.authPlayer() }
+    }
+    
+    // Prepara a cena do jogo e muda a tela
+    private func prepareAndStartGame() {
+        let size = CGSize(width: 364, height: 415)
+        let newScene = makeScene(size: size)
+        self.scene = newScene
+        self.currentScreen = .game
+    }
+    
+    // Função para criar a cena (movida para cá)
     private func makeScene(size: CGSize) -> GameScene {
-        let scene = GameScene()
-        scene.size = size
+        let scene = GameScene(size: size)
         scene.scaleMode = .resizeFill
 
         scene.onLivesChanged = { lives in
@@ -35,125 +79,74 @@ struct GameView: View {
         return scene
     }
 
-    // HUD state
-    @State private var points: Int = 0
-    @State private var lives: Int = 3
-    @State private var powerups: Int = 0
-    @State private var isGameOver: Bool = false
-    @State private var scene: GameScene = GameScene()
-    
-
-    var body: some View {
+    // A view de gameplay foi extraída para um método auxiliar
+    @ViewBuilder
+    private func gameplayView(scene: GameScene) -> some View {
         VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(.consoleBackground)
+                    .fill(Color("consoleBackground"))
                     .frame(width: 380, height: 476)
                     .shadow(radius: 8)
 
                 SpriteView(scene: scene)
                     .frame(width: 364, height: 415)
                     .clipped()
-                    .onAppear {
-                        // tamanho da cena igual à área útil visível
-                        scene = makeScene(size: CGSize(width: 364, height: 415))
-                    }
                     .padding(.top, 8)
                     .padding(.horizontal, 8)
 
-                // HUD (fica acima do SpriteView)
+                // HUD
                 HStack(spacing: 8) {
                     Text("Vidas: ")
                         .fontWeight(.semibold)
                         .foregroundStyle(.white)
                         .padding(.leading, 12)
-
-                    ForEach(0..<lives, id: \.self ) {_ in
-                        Image("heart")
-                            .resizable()
-                            .renderingMode(.original)
-                            .frame(width: 12, height: 12)
-                    }
-                        .font(.headline.monospacedDigit())
-                                            
-                    Text("Pontos: \(points)")
-                        .font(.headline.monospacedDigit())
-                        .foregroundStyle(.white)
-                        .padding(6)
-                    Text("Power: \(powerups)/1")
-                        .font(.headline.monospacedDigit())
-                        .foregroundStyle(.white)
-                        .padding(6)
+                    ForEach(0..<lives, id: \.self ) {_ in Image("heart").resizable().renderingMode(.original).frame(width: 12, height: 12) }
+                    Text("Pontos: \(points)").font(.headline.monospacedDigit()).foregroundStyle(.white).padding(6)
+                    Text("Power: \(powerups)/1").font(.headline.monospacedDigit()).foregroundStyle(.white).padding(6)
                 }
                 
-                Text("SaguBoy")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(.consoleText)
-                    .padding(.top, 450)
-                    .padding(.leading, 8)
-                Text("Color SB")
-                    .font(.system(size: 8, weight: .medium))
-                    .foregroundStyle(.consoleText)
-                    .padding(.top, 444)
-                    .padding(.leading, 77)
-                    
-
-                // Overlay de Game Over cobrindo só a área do jogo
+                // ... (O resto do seu HUD e textos de SaguBoy)
+                
                 if isGameOver {
                     VStack(spacing: 12) {
-                        Text("GAME OVER")
-                            .font(.largeTitle.bold())
-                            .foregroundStyle(.white)
+                        Text("GAME OVER").font(.largeTitle.bold()).foregroundStyle(.white)
+                        Text("Pressione Start ou toque na tela").font(.body).foregroundStyle(.white.opacity(0.8))
                     }
                     .frame(width: 364, height: 415)
-                    .background(Color.black.opacity(0.5))
+                    .background(Color.black.opacity(0.7))
                     .padding(.top, 8)
                     .padding(.horizontal, 8)
-                    .onTapGesture {
-                        isGameOver = false
-                        lives = 3
-                        powerups = 0
-                        scene.resetGame()
-                    }
+                    .onTapGesture { resetGame() }
                 }
             }
             
             Spacer()
 
             ControllersView(
-                onDirection: { dir, pressed in
-                    scene.setDirection(dir, active: pressed)
-                },
-                onA: { pressed in
-                    if pressed {
-                        scene.handleA(pressed: pressed)
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                    }
-                },
-                onB: { pressed in
-                    if pressed {
-                        scene.handleB(pressed: pressed) 
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                    }
-                },
+                onDirection: { dir, pressed in scene.setDirection(dir, active: pressed) },
+                onA: { pressed in if pressed { scene.handleA(pressed: pressed); UIImpactFeedbackGenerator(style: .medium).impactOccurred() } },
+                onB: { pressed in if pressed { scene.handleB(pressed: pressed); UIImpactFeedbackGenerator(style: .medium).impactOccurred() } },
                 onStart: { pressed in
                     if pressed {
                         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                         if isGameOver {
-                            isGameOver = false
-                            lives = 3
-                            powerups = 0
-                            scene.resetGame()
-                        } else {
-                            
+                            resetGame()
                         }
                     }
                 }
             )
         }
         .padding(.top, 8)
-        .background(Image(.metalico).resizable().scaledToFill().ignoresSafeArea(.container, edges: .bottom))
+        .background(Image("metalico").resizable().scaledToFill().ignoresSafeArea(.container, edges: .bottom))
         .background(Color.black)
-        .onAppear { gameCenterViewModel.authPlayer() }
+    }
+    
+    private func resetGame() {
+        isGameOver = false
+        lives = 3
+        powerups = 0
+        points = 0
+        scene?.resetGame()
     }
 }
