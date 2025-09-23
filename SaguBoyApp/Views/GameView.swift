@@ -10,9 +10,9 @@ import SwiftData
 
 struct GameView: View {
     
-    @State private var gameCenterViewModel = GameCenterViewModel()
-    @State private var dataViewModel = DataViewModel()
-
+    @State var gameCenterViewModel = GameCenterViewModel()
+    @State var dataViewModel: DataViewModel
+    
     private func makeScene(size: CGSize) -> GameScene {
         let scene = GameScene()
         scene.size = size

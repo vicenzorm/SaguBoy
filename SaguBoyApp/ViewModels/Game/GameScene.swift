@@ -17,7 +17,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     var onPowerupChanged: ((Int) -> Void)?
 
     // MARK: - Player
-    private let playerRadius: CGFloat = 15
+    private let playerRadius: CGFloat = 30
     private let playerSpeed: CGFloat = 180
     private let playerMinPoints = 0
     private var playerPoints = 0 { didSet { onPointsChanged?(playerPoints) } }
@@ -210,7 +210,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let atlas = SKTextureAtlas(named: "mainCharacter")
         let playerTexture = atlas.textureNamed("idle1")
         
-        let node = PlayerNode(texture: playerTexture, color: .white, size: CGSize(width: 30, height: 30))
+        let node = PlayerNode()
         
         node.position = CGPoint(x: size.width * 0.5, y: size.height * 0.2)
         

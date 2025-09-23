@@ -10,9 +10,11 @@ import SwiftUI
 @main
 struct SaguBoyAppApp: App {
     
+    @Environment(\.modelContext) private var modelContext
+    
     var body: some Scene {
         WindowGroup {
-            GameView()
+            GameView(dataViewModel: DataViewModel(modelContext: modelContext))
         }
         .modelContainer(for: [
             Ponctuation.self

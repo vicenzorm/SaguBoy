@@ -11,13 +11,10 @@ import GameplayKit
 class UpState: PlayerState {
     
     override func didEnter(from previousState: GKState?) {
-        let upAnimation = SKAction.animate(with: player.upTextures, timePerFrame: player.timePerFrame)
-        let loopAnimation = SKAction.repeatForever(upAnimation)
-        player.run(loopAnimation, withKey: "upAnimation")
+        player.transitionToAnimation(textures: player.upTextures)
     }
     
     override func willExit(to nextState: GKState) {
-        player.removeAction(forKey: "upAnimation")
     }
     
     override func isValidNextState(_ stateClass: AnyClass) -> Bool {

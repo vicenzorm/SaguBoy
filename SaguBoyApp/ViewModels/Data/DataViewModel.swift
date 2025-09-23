@@ -10,12 +10,15 @@ import SwiftData
 import SwiftUICore
 
 final class DataViewModel: DataViewModelProtocol {
-    
-    @Environment(\.modelContext) private var modelContext
-    
-    var score: Ponctuation?
-    var scores: [Ponctuation] = []
-    
+        private var modelContext: ModelContext
+        
+        var score: Ponctuation?
+        var scores: [Ponctuation] = []
+        
+        init(modelContext: ModelContext) {
+            self.modelContext = modelContext
+        }
+        
     func fetchScores() {
         do {
             let descriptor = FetchDescriptor<Ponctuation>(
@@ -38,8 +41,7 @@ final class DataViewModel: DataViewModelProtocol {
             print("Erro ao buscar melhor pontuação: \(error.localizedDescription)")
         }
     }
-    
-    func addScore(value: Int) {
+  func addScore(value: Int) {
         let newScore = Ponctuation(score: value)
         modelContext.insert(newScore)
         do {

@@ -10,13 +10,10 @@ import GameplayKit
 class LeftState: PlayerState {
     
     override func didEnter(from previousState: GKState?) {
-        let leftAnimation = SKAction.animate(with: player.leftTextures, timePerFrame: player.timePerFrame)
-        let loopAnimation = SKAction.repeatForever(leftAnimation)
-        player.run(loopAnimation, withKey: "leftAnimation")
+        player.transitionToAnimation(textures: player.leftTextures)
     }
     
     override func willExit(to nextState: GKState) {
-        player.removeAction(forKey: "leftAnimation")
     }
     
     override func isValidNextState(_ stateClass: AnyClass) -> Bool {

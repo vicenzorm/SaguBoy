@@ -10,9 +10,7 @@ import GameplayKit
 class IdleState: PlayerState {
     
     override func didEnter(from previousState: GKState?) {
-        let idleAnimation = SKAction.animate(with: player.idleTextures, timePerFrame: player.timePerFrame)
-        let loopAnimation = SKAction.repeatForever(idleAnimation)
-        player.run(loopAnimation, withKey: "idleAnimation")
+        player.transitionToAnimation(textures: player.upTextures)
     }
     
     override func willExit(to nextState: GKState) {
