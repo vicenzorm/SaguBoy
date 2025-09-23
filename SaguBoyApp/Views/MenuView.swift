@@ -19,7 +19,7 @@ struct MenuView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            ZStack(alignment: .top) {
+            ZStack(alignment: .topLeading) {
                 // Fundo e Estrutura do "Console"
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
                     .fill(Color("consoleBackground"))
@@ -28,18 +28,21 @@ struct MenuView: View {
                 
                 // Tela do Jogo com fundo e opções de menu
                 ZStack {
-                    // Usando o GIFNode que você já tem no projeto para o fundo
-                    // Precisaremos de uma wrapper para usá-lo em SwiftUI
-                    GIFView(gifName: "backgroundPlaceholder")
-                    
-                    VStack(spacing: 15) {
+                    VStack(spacing: 10) {
+                        
+                        Text("v1.0.0") // Usando a versão do projeto
+                            .font(Font.custom("JetBrainsMonoNL-Regular", size: 20))
+                            .foregroundStyle(.white)
+                            .rotationEffect(Angle(degrees: 27)) // Rotaciona o texto
+                            .padding(.leading, 180) // Ajusta a distância da direita
+                        
                         // Logo do Jogo - usando a imagem "shiro" do seu AppIcon
                         Image("shiro")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 200)
                             .padding(.bottom, 30)
-
+                        
                         // Opções do Menu
                         menuOptionText(for: .play)
                         menuOptionText(for: .settings)
@@ -47,22 +50,23 @@ struct MenuView: View {
                     }
                 }
                 .frame(width: 364, height: 415)
-                .clipped()
+                .background(GIFView(gifName: "backgroundPlaceholder"))
                 .padding(.top, 8)
                 .padding(.horizontal, 8)
                 
                 // Textos "SaguBoy" e "Color SB"
-                HStack(alignment: .bottom, spacing: 4) {
-                    Text("SaguBoy")
-                        .font(.system(size: 16, weight: .bold))
-                    Text("Color SB")
-                        .font(.system(size: 8, weight: .medium))
-                        .padding(.bottom, 2)
-                }
-                .foregroundStyle(Color("consoleText"))
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-                .padding(.leading, 16)
-                .padding(.bottom, 10)
+                
+                Text("SaguBoy")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.consoleText)
+                    .padding(.top, 450)
+                    .padding(.leading, 8)
+                
+                Text("Color SB")
+                    .font(.system(size: 8, weight: .regular))
+                    .foregroundStyle(.consoleText)
+                    .padding(.top, 445)
+                    .padding(.leading, 77)
             }
             
             Spacer()

@@ -106,18 +106,33 @@ struct GameView: View {
                     Text("Power: \(powerups)/1").font(.headline.monospacedDigit()).foregroundStyle(.white).padding(6)
                 }
                 
-                // ... (O resto do seu HUD e textos de SaguBoy)
                 
                 if isGameOver {
-                    VStack(spacing: 12) {
-                        Text("GAME OVER").font(.largeTitle.bold()).foregroundStyle(.white)
-                        Text("Pressione Start ou toque na tela").font(.body).foregroundStyle(.white.opacity(0.8))
+                    VStack(spacing: 60) {
+                        Text("Your score: \(points)")
+                            .foregroundStyle(.white)
+                            .font(Font.custom("JetBrainsMonoNL-Regular", size: 16))
+                            .bold()
+                        
+                        Text("You died")
+                            .foregroundStyle(.white)
+                            .font(Font.custom("JetBrainsMonoNL-Regular", size: 48))
+                            .bold()
+                        
+                        VStack(spacing: 16) {
+                            Text("press A to play again")
+                                .foregroundStyle(.white)
+                                .font(Font.custom("JetBrainsMonoNL-Regular", size: 16))
+                            
+                            Text("press START to return to menu")
+                                .foregroundStyle(.white)
+                                .font(Font.custom("JetBrainsMonoNL-Regular", size: 16))
+                        }
                     }
                     .frame(width: 364, height: 415)
                     .background(Color.black.opacity(0.7))
                     .padding(.top, 8)
                     .padding(.horizontal, 8)
-                    .onTapGesture { resetGame() }
                 }
             }
             
@@ -125,13 +140,25 @@ struct GameView: View {
 
             ControllersView(
                 onDirection: { dir, pressed in scene.setDirection(dir, active: pressed) },
-                onA: { pressed in if pressed { scene.handleA(pressed: pressed); UIImpactFeedbackGenerator(style: .medium).impactOccurred() } },
+                onA: {
+                    pressed in if pressed {
+                        scene.handleA(pressed: pressed);
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        if isGameOver {
+                            resetGame()
+                        }
+                    }
+                },
                 onB: { pressed in if pressed { scene.handleB(pressed: pressed); UIImpactFeedbackGenerator(style: .medium).impactOccurred() } },
                 onStart: { pressed in
                     if pressed {
                         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                         if isGameOver {
-                            resetGame()
+                            isGameOver = false
+                            lives = 3
+                            powerups = 0
+                            points = 0
+                            currentScreen = .menu
                         }
                     }
                 }
