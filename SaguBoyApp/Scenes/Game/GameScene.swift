@@ -243,7 +243,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Setup
     private func setupPlayer() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
-        let playerTexture = atlas.textureNamed("idle1")
+        let playerTexture = atlas.textureNamed("up1")
         
         let node = PlayerNode()
         
