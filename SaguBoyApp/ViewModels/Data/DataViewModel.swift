@@ -7,7 +7,7 @@
 
 import Foundation
 import SwiftData
-import SwiftUICore
+import SwiftUI
 
 final class DataViewModel: DataViewModelProtocol {
         private var modelContext: ModelContext

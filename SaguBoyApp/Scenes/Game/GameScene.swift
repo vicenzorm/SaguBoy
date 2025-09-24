@@ -463,6 +463,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             
             timeSinceLastPoint -= Double(pointsToAdd) * scoringInterval
         }
+        
+        if (GameCenterViewModel.achievementsStatus["Beginner"] != true  &&  playerPoints >= 10000) {
+            
+            GameCenterViewModel.reportAchievement(id: "Beginner", percent: 100)
+            GameCenterViewModel.achievementsProgress["Beginner"] = 100.0
+            GameCenterViewModel.achievementsStatus["Beginner"] = true
+        }
+        
     }
 
     private func updatePlayer(dt: TimeInterval) {
