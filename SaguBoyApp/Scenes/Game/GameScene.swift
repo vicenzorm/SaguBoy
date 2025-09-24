@@ -58,6 +58,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private let WindHitSound = SKAction.playSoundFileNamed("windHit.wav", waitForCompletion: false)
     private let dashSound = SKAction.playSoundFileNamed("dash.mp3", waitForCompletion: false)
     private let invicibilitySound = SKAction.playSoundFileNamed("invicibility.mp3", waitForCompletion: false)
+    private let perfectDodgeSound = SKAction.playSoundFileNamed("perfectDodge.mp3", waitForCompletion: false)
 
     // MARK: - Time
     private var lastUpdateTime: TimeInterval = 0
@@ -132,21 +133,34 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         guard pressed else { return }
         
         let currentTime = CACurrentMediaTime()
-        // Verificar se o dash está disponível (cooldown)
+        // verifica se o dash está disponível (cooldown)
         if currentTime - lastDashTime >= dashCooldown {
-            performDash()
+            let hadEnemyNearby = checkEnemyNearby(radius: 50) // verifica inimigos próximos
+            performDash(hadEnemyNearby: hadEnemyNearby)
             lastDashTime = currentTime
+            run(dashSound) // só toca aqui, quando realmente fez dash
         }
-        run(dashSound)
     }
     
-    private func performDash() {
+    /// Verifica se há inimigos próximos do player
+    private func checkEnemyNearby(radius: CGFloat) -> Bool {
+        var foundEnemy = false
+        enumerateChildNodes(withName: "enemy") { node, stop in
+            let distance = hypot(node.position.x - self.player.position.x,
+                                 node.position.y - self.player.position.y)
+            if distance <= radius {
+                foundEnemy = true
+                stop.pointee = true
+            }
+        }
+        return foundEnemy
+    }
+    
+    private func performDash(hadEnemyNearby: Bool) {
         // Verificar se o player está se movendo (há direções ativas)
         guard !activeDirections.isEmpty else { return }
         
         isDashing = true
-        
-        // Aplicar o boost de velocidade
         currentPlayerSpeed = playerSpeed * dashSpeedMultiplier
         
         // Efeito visual durante o dash
@@ -156,13 +170,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         ])
         player.run(flashAction)
         
-        // Efeito de partículas durante o dash (opcional - se você tiver o arquivo)
+        // Partículas de dash
         if let dashParticles = SKEmitterNode(fileNamed: "DashParticles") {
             dashParticles.position = player.position
             dashParticles.zPosition = -1
             addChild(dashParticles)
             
-            // Remover partículas após um tempo
             dashParticles.run(SKAction.sequence([
                 SKAction.wait(forDuration: dashDuration),
                 SKAction.removeFromParent()
@@ -176,6 +189,28 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                 guard let self = self else { return }
                 self.currentPlayerSpeed = self.playerSpeed
                 self.isDashing = false
+                
+                // se havia inimigo próximo E o player não foi atingido, dá pontos bônus
+                if hadEnemyNearby && self.playerLifes > 0 {
+                    let bonus = 5900
+                    self.playerPoints += bonus
+                    
+                    // Som de desvio perfeito
+                    self.run(self.perfectDodgeSound)
+                    
+                    // Feedback visual
+                    let label = SKLabelNode(text: "+\(bonus)!")
+                    label.fontSize = 20
+                    label.fontColor = .yellow
+                    label.position = self.player.position
+                    label.zPosition = 1000 // garante que vai ficar em cima
+                    self.addChild(label)
+                    label.run(SKAction.sequence([
+                        SKAction.moveBy(x: 0, y: 30, duration: 0.8),
+                        SKAction.fadeOut(withDuration: 0.8),
+                        SKAction.removeFromParent()
+                    ]))
+                }
                 
                 // Efeito visual de fim de dash
                 self.player.run(SKAction.colorize(with: .white, colorBlendFactor: 0, duration: 0.1))
