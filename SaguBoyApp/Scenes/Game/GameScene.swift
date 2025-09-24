@@ -246,7 +246,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let playerTexture = atlas.textureNamed("up1")
         
         let node = PlayerNode()
-        let physicsSize = CGSize(width: 45, height: 70)
+        let physicsSize = CGSize(width: 35, height: 45)
         node.position = CGPoint(x: size.width * 0.5, y: size.height * 0.2)
         
         node.physicsBody = SKPhysicsBody(rectangleOf: physicsSize)
@@ -313,17 +313,16 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         } else {
             switch kind {
             case .round:
-                let shape = SKShapeNode(circleOfRadius: size.width * 0.5)
-                shape.fillColor = .red
-                shape.strokeColor = .clear
+                let imageName = "bolaNeve"
+                let shape = SKSpriteNode(imageNamed: imageName)
+                shape.size = CGSize(width: 50, height: 50)
                 shape.position = pos
                 shape.physicsBody = SKPhysicsBody(circleOfRadius: size.width * 0.5)
                 node = shape
             case .box:
-                let shape = SKShapeNode(rectOf: size, cornerRadius: kind.cornerRadius)
-                shape.fillColor = .orange
-                shape.strokeColor = .clear
+                let shape = TroncoNode()
                 shape.position = pos
+                shape.size = CGSize(width: 88, height: 48)
                 let rect = CGRect(x: -size.width/2, y: -size.height/2, width: size.width, height: size.height)
                 let path = CGPath(roundedRect: rect, cornerWidth: kind.cornerRadius, cornerHeight: kind.cornerRadius, transform: nil)
                 shape.physicsBody = SKPhysicsBody(polygonFrom: path)

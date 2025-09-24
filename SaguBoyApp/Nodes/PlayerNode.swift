@@ -9,11 +9,11 @@ import GameplayKit
 
 class PlayerNode: SKNode {
     
-    private let desiredSpriteSize = CGSize(width: 45, height: 70)
+    private let desiredSpriteSize = CGSize(width: 70, height: 90)
     
     private var currentAnimationSprite: SKSpriteNode?
     
-    let animationFrameRate = 30.0
+    let animationFrameRate = 60.0
     
     var timePerFrame: TimeInterval {
         1.0 / animationFrameRate
@@ -49,7 +49,7 @@ class PlayerNode: SKNode {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func transitionToAnimation(textures: [SKTexture], fadeDuration: TimeInterval = 0.15) {
+    func transitionToAnimation(textures: [SKTexture], fadeDuration: TimeInterval = 0.10) {
         guard let firstFrame = textures.first else { return }
         let oldSprite = currentAnimationSprite
         
@@ -109,36 +109,41 @@ class PlayerNode: SKNode {
     
     func loadIdle() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...30 {
-            idleTextures.append(atlas.textureNamed("up\(i)"))
+        for i in 1...60 {
+            let textureName = String(format: "%04d", i)
+            idleTextures.append(atlas.textureNamed(textureName))
         }
     }
     
     func loadDown() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...30 {
-            downTextures.append(atlas.textureNamed("down\(i)"))
+        for i in 1...60 {
+            let textureName = String(format: "%04d", i)
+            downTextures.append(atlas.textureNamed(textureName))
         }
     }
     
     func loadLeft() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...30 {
-            leftTextures.append(atlas.textureNamed("left\(i)"))
+        for i in 1...60 {
+            let textureName = String(format: "%04d", i)
+            leftTextures.append(atlas.textureNamed(textureName))
         }
     }
     
     func loadRight() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...30 {
-            rightTextures.append(atlas.textureNamed("right\(i)"))
+        for i in 1...60 {
+            let textureName = String(format: "%04d", i)
+            rightTextures.append(atlas.textureNamed(textureName))
         }
     }
     
     func loadUp() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...30 {
-            upTextures.append(atlas.textureNamed("up\(i)"))
+        for i in 1...60 {
+            let textureName = String(format: "%04d", i)
+            upTextures.append(atlas.textureNamed(textureName))
         }
     }
 }
