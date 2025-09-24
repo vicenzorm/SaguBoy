@@ -9,6 +9,8 @@ import GameplayKit
 
 class PlayerNode: SKNode {
     
+    private let desiredSpriteSize = CGSize(width: 45, height: 70)
+    
     private var currentAnimationSprite: SKSpriteNode?
     
     let animationFrameRate = 30.0
@@ -49,10 +51,10 @@ class PlayerNode: SKNode {
     
     func transitionToAnimation(textures: [SKTexture], fadeDuration: TimeInterval = 0.15) {
         guard let firstFrame = textures.first else { return }
-        
         let oldSprite = currentAnimationSprite
         
         let newSprite = SKSpriteNode(texture: firstFrame)
+        newSprite.size = desiredSpriteSize
         newSprite.alpha = 0.0
         addChild(newSprite)
         
@@ -77,6 +79,7 @@ class PlayerNode: SKNode {
         let oldSprite = currentAnimationSprite
 
         let newSprite = SKSpriteNode(texture: texture)
+        newSprite.size = desiredSpriteSize
         newSprite.alpha = 0.0
         addChild(newSprite)
 

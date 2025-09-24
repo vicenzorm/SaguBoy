@@ -246,10 +246,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let playerTexture = atlas.textureNamed("up1")
         
         let node = PlayerNode()
-        
+        let physicsSize = CGSize(width: 45, height: 70)
         node.position = CGPoint(x: size.width * 0.5, y: size.height * 0.2)
         
-        node.physicsBody = SKPhysicsBody(circleOfRadius: playerRadius)
+        node.physicsBody = SKPhysicsBody(rectangleOf: physicsSize)
         node.physicsBody?.isDynamic = true
         node.physicsBody?.affectedByGravity = false
         node.physicsBody?.allowsRotation = false
