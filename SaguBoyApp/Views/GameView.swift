@@ -153,6 +153,7 @@ struct GameView: View {
                 onStart: { pressed in
                     if pressed {
                         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        scene.handleStart(pressed: pressed)
                         if isGameOver {
                             isGameOver = false
                             lives = 3

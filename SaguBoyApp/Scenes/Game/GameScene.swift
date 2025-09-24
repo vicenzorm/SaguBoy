@@ -71,6 +71,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var dashDuration: TimeInterval = 0.2 // Duração do dash
     private var dashSpeedMultiplier: CGFloat = 3.0 // Multiplicador de velocidade durante o dash
     
+    // MARK: - Pause Menu
+    private var pauseMenu: SKNode?
+    private var pauseOptions: [SKLabelNode] = []
+    private var optionBackgrounds: [SKSpriteNode] = []
+    private var selectedPauseIndex = 0
+    private var isPausedMenuActive = false
+    
     // MARK: - Background GIF
     private var backgroundNode: GIFNode?
     
@@ -94,7 +101,25 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Público (entrada)
     func setDirection(_ dir: Direction, active: Bool) {
-        if active { activeDirections.insert(dir) } else { activeDirections.remove(dir) }
+        if isPausedMenuActive {
+            guard active else { return }
+            if dir == .up {
+                selectedPauseIndex = max(0, selectedPauseIndex - 1)
+                updatePauseMenuSelection()
+            } else if dir == .down {
+                selectedPauseIndex = min(pauseOptions.count - 1, selectedPauseIndex + 1)
+                updatePauseMenuSelection()
+            }
+        } else {
+            // lógica normal do player
+            if active { activeDirections.insert(dir) } else { activeDirections.remove(dir) }
+        }
+    }
+
+    private func updatePauseMenuSelection() {
+        for (i, label) in pauseOptions.enumerated() {
+            label.fontColor = (i == selectedPauseIndex) ? .yellow : .white
+        }
     }
     
     func resetGame() {
@@ -139,6 +164,31 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             performDash(hadEnemyNearby: hadEnemyNearby)
             lastDashTime = currentTime
             run(dashSound) // só toca aqui, quando realmente fez dash
+        }
+    }
+    
+    func handleStart(pressed: Bool) {
+        guard pressed else { return }
+        
+        if !isPausedMenuActive {
+            // Abre o pause
+            showPauseMenu()
+        } else {
+            // Confirma seleção
+            if selectedPauseIndex == 0 {
+                // Continuar
+                hidePauseMenu()
+            } else if selectedPauseIndex == 1 {
+                // Sair
+                onGameOver?() // ou algum callback para voltar ao menu principal
+                // Delay assíncrono usando Task.sleep
+                Task {
+                    try? await Task.sleep(for: .seconds(1))
+                    // Código que deve rodar após 1 segundo
+                    // Ex.: navegar para tela de menu, mostrar animação, etc.
+                }
+
+            }
         }
     }
     
@@ -239,6 +289,78 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         backgroundNode?.size = size
         backgroundNode?.position = CGPoint(x: size.width / 2, y: size.height / 2)
     }
+    
+    private func showPauseMenu() {
+        isGameRunning = false
+        self.isPaused = true  // pausa física/ações
+        
+        let menu = SKNode()
+        menu.zPosition = 2000
+        
+        // Fundo semitransparente
+        let background = SKSpriteNode(color: UIColor.black.withAlphaComponent(0.6), size: size)
+        background.position = CGPoint(x: size.width/2, y: size.height/2)
+        background.zPosition = -1
+        menu.addChild(background)
+        
+        // Label "Paused"
+        let titleLabel = SKLabelNode(text: "Paused")
+        titleLabel.fontName = "JetBrainsMonoNL-Bold"
+        titleLabel.fontSize = 36
+        titleLabel.position = CGPoint(x: size.width/2, y: size.height/2 + 80)
+        titleLabel.fontColor = .white
+        menu.addChild(titleLabel)
+        
+        // Opções
+        let options = ["Continuar", "Sair"]
+        pauseOptions = []
+        optionBackgrounds = []  // armazenar retângulos brancos
+        
+        let spacing: CGFloat = 150
+        let baseY = size.height/2 - 20
+        
+        for (i, title) in options.enumerated() {
+            // Retângulo branco por trás
+            let rect = SKSpriteNode(color: .white, size: CGSize(width: 120, height: 40))
+            rect.position = CGPoint(x: size.width/2 + CGFloat(i) * spacing - spacing/2, y: baseY)
+            rect.isHidden = (i != 0)  // só mostrar para a opção selecionada
+            menu.addChild(rect)
+            optionBackgrounds.append(rect)
+            
+            // Label do botão
+            let label = SKLabelNode(text: title)
+            label.fontName = "JetBrainsMonoNL-Regular"
+            label.fontSize = 20
+            label.position = rect.position
+            label.fontColor = .black
+            pauseOptions.append(label)
+            menu.addChild(label)
+        }
+        
+        pauseMenu = menu
+        addChild(menu)
+        isPausedMenuActive = true
+        selectedPauseIndex = 0
+    }
+
+    // Para trocar a seleção:
+    private func updatePauseSelection(to index: Int) {
+        selectedPauseIndex = index
+        for (i, rect) in optionBackgrounds.enumerated() {
+            rect.isHidden = (i != index)
+        }
+    }
+
+    
+    private func hidePauseMenu() {
+        pauseMenu?.removeFromParent()
+        pauseMenu = nil
+        pauseOptions = []
+        isPausedMenuActive = false
+        self.isPaused = false
+        isGameRunning = true
+    }
+
     
     // MARK: - Setup
     private func setupPlayer() {
