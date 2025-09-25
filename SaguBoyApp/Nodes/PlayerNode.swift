@@ -9,7 +9,7 @@ import GameplayKit
 
 class PlayerNode: SKNode {
     
-    private let desiredSpriteSize = CGSize(width: 70, height: 90)
+    private let desiredSpriteSize = CGSize(width: 39, height: 70)
     
     private var currentAnimationSprite: SKSpriteNode?
     
@@ -19,7 +19,7 @@ class PlayerNode: SKNode {
         1.0 / animationFrameRate
     }
     var stateMachine: GKStateMachine!
-    var idleTextures: [SKTexture] = []
+    var idleTexture: SKTexture?
     var leftTextures: [SKTexture] = []
     var upTextures: [SKTexture] = []
     var rightTextures: [SKTexture] = []
@@ -98,26 +98,19 @@ class PlayerNode: SKNode {
     private func loadTextures() {
         loadUp()
         loadDown()
-        loadIdle()
         loadLeft()
         loadRight()
+        loadDash()
+        loadIdle()
     }
     
     func update(deltaTime: TimeInterval) {
         stateMachine.update(deltaTime: deltaTime)
     }
     
-    func loadIdle() {
-        let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...60 {
-            let textureName = String(format: "%04d", i)
-            idleTextures.append(atlas.textureNamed(textureName))
-        }
-    }
-    
     func loadDown() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...60 {
+        for i in 2...60 {
             let textureName = String(format: "%04d", i)
             downTextures.append(atlas.textureNamed(textureName))
         }
@@ -125,7 +118,7 @@ class PlayerNode: SKNode {
     
     func loadLeft() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...60 {
+        for i in 2...60 {
             let textureName = String(format: "%04d", i)
             leftTextures.append(atlas.textureNamed(textureName))
         }
@@ -133,7 +126,7 @@ class PlayerNode: SKNode {
     
     func loadRight() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...60 {
+        for i in 2...60 {
             let textureName = String(format: "%04d", i)
             rightTextures.append(atlas.textureNamed(textureName))
         }
@@ -141,9 +134,24 @@ class PlayerNode: SKNode {
     
     func loadUp() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...60 {
+        for i in 2...60 {
             let textureName = String(format: "%04d", i)
             upTextures.append(atlas.textureNamed(textureName))
         }
     }
+    
+    func loadIdle() {
+        let atlas = SKTextureAtlas(named: "mainCharacter")
+        let textureName = String(format: "%04d", 2)
+        idleTexture = atlas.textureNamed(textureName)
+    }
+    
+    func loadDash() {
+        let atlas = SKTextureAtlas(named: "mainCharacter")
+        let textureName = String(format: "%04d", 38)
+        dashTexture = atlas.textureNamed(textureName)
+
+    }
+    
+    
 }
