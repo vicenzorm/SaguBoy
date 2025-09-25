@@ -10,7 +10,7 @@ import GameplayKit
 
 class TroncoNode: SKSpriteNode {
     
-    private let desiredSpriteSize = CGSize(width: 100, height: 48)
+    private let desiredSpriteSize = CGSize(width: 78, height: 18)
     let animationFrameRate = 60.0
     
     var timePerFrame: TimeInterval {

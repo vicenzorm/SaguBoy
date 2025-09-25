@@ -467,7 +467,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         backgroundNode?.removeFromParent()
         
         // Cria o nó do GIF
-        backgroundNode = GIFNode(gifName: "backgroundPlaceholder", size: size)
+        backgroundNode = GIFNode(gifName: "backgroundGIF", size: size)
         backgroundNode?.position = CGPoint(x: size.width / 2, y: size.height / 2)
         backgroundNode?.zPosition = -1000 // Muito atrás de tudo
         
@@ -674,14 +674,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             case .round:
                 let imageName = "bolaNeve"
                 let shape = SKSpriteNode(imageNamed: imageName)
-                shape.size = CGSize(width: 50, height: 50)
+                shape.size = CGSize(width: 18, height: 18)
                 shape.position = pos
                 shape.physicsBody = SKPhysicsBody(circleOfRadius: size.width * 0.5)
                 node = shape
             case .box:
                 let shape = TroncoNode()
                 shape.position = pos
-                shape.size = CGSize(width: 88, height: 48)
+                shape.size = CGSize(width: 68, height: 18)
                 let rect = CGRect(x: -size.width/2, y: -size.height/2, width: size.width, height: size.height)
                 let path = CGPath(roundedRect: rect, cornerWidth: kind.cornerRadius, cornerHeight: kind.cornerRadius, transform: nil)
                 shape.physicsBody = SKPhysicsBody(polygonFrom: path)
