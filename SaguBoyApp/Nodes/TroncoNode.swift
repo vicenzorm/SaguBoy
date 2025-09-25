@@ -43,7 +43,7 @@ class TroncoNode: SKSpriteNode {
     
     private func loadTextures() {
         let atlas = SKTextureAtlas(named: "tronco")
-        for i in 1...60 {
+        for i in 2...60 {
             let textureName = String(format: "tronco%04d", i)
             troncoTextures.append(atlas.textureNamed(textureName))
         }

@@ -243,10 +243,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Setup
     private func setupPlayer() {
         let atlas = SKTextureAtlas(named: "mainCharacter")
-        let playerTexture = atlas.textureNamed("up1")
+        let playerTexture = atlas.textureNamed("0002")
         
         let node = PlayerNode()
-        let physicsSize = CGSize(width: 35, height: 45)
+        let physicsSize = CGSize(width: 35, height: 65)
         node.position = CGPoint(x: size.width * 0.5, y: size.height * 0.2)
         
         node.physicsBody = SKPhysicsBody(rectangleOf: physicsSize)
@@ -443,10 +443,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let dt = min(currentTime - lastUpdateTime, 1.0/30.0)
         lastUpdateTime = currentTime
         updatePoints(dt: dt)
+        player.update(deltaTime: dt)
         
         updatePlayer(dt: dt)
         
-        player.update(deltaTime: dt)
         cleanupOffscreen()
     }
     
@@ -466,6 +466,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
     private func updatePlayer(dt: TimeInterval) {
         guard let p = player else { return }
+
         var dx: CGFloat = 0, dy: CGFloat = 0
         if activeDirections.contains(.left)      { dx -= 1 }
         if activeDirections.contains(.right)     { dx += 1 }
@@ -476,17 +477,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         if activeDirections.contains(.downLeft)  { dx -= 1; dy -= 1 }
         if activeDirections.contains(.downRight) { dx += 1; dy -= 1 }
 
-        // Normalizar diagonal (senão anda mais rápido na diagonal)
         if dx != 0 && dy != 0 {
-            let invSqrt2: CGFloat = 1.0 / 1.41421356237
-            dx *= invSqrt2; dy *= invSqrt2
+            let invSqrt2: CGFloat = 1.0 / sqrt(2.0)
             dx *= invSqrt2
             dy *= invSqrt2
         }
         
-        // ESTADOS
         if dy > 0 {
-            player.stateMachine.enter(IdleState.self)
+            player.stateMachine.enter(UpState.self)
         } else if dy < 0 {
             player.stateMachine.enter(DownState.self)
         } else if dx > 0 {
@@ -494,10 +492,11 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         } else if dx < 0 {
             player.stateMachine.enter(LeftState.self)
         } else {
+            // Se não há movimento, entra no estado Idle.
             player.stateMachine.enter(IdleState.self)
         }
         
-        // Usar currentPlayerSpeed em vez de playerSpeed (constante)
+        
         let dist = CGFloat(dt) * currentPlayerSpeed
         var pos = p.position
         pos.x += dx * dist
