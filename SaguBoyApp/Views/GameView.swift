@@ -55,6 +55,12 @@ struct GameView: View {
         let newScene = makeScene(size: size)
         self.scene = newScene
         self.currentScreen = .game
+        
+        // Garante que o jogo comece não pausado
+        self.isGameOver = false
+        self.lives = 3
+        self.powerups = 0
+        self.points = 0
     }
     
     // Função para criar a cena (movida para cá)
