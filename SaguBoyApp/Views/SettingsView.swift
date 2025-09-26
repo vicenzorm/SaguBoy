@@ -1,22 +1,21 @@
 //
-//  MenuView.swift
+//  SettingsView.swift
 //  SaguBoyApp
 //
-//  Created by Enzo Tonatto on 23/09/25.
+//  Created by Enzo Tonatto on 24/09/25.
 //
 
 import SwiftUI
 
-struct MenuView: View {
+struct SettingsView: View {
     
-    @State private var viewModel = MenuViewModel()
+    @State private var viewModel = SettingsViewModel()
+    @State private var settings = SettingsManager.shared
     
-    var onPlay: () -> Void
-    var onSettings: () -> Void
-    var onLeaderboard: () -> Void
+    var onBack: () -> Void
     
     @State private var directionPressed: Direction? = nil
-    
+
     var body: some View {
         VStack(spacing: 0) {
             
@@ -28,35 +27,34 @@ struct MenuView: View {
                     .shadow(radius: 8)
                 
                 ZStack {
+                    
                     GIFView(gifName: "backgroundPlaceholder").scaledToFill().frame(width: 364, height: 415)
                     
-                    VStack(spacing: 15) {
+                    VStack(spacing: 16) {
+                        Text("settings")
+                            .font(Font.custom("JetBrainsMonoNL-Regular", size: 30))
+                            .foregroundColor(.white)
+                            .padding(.top, 16)
                         
-                        Text("v1.0.0")
-                            .font(Font.custom("JetBrainsMonoNL-Regular", size: 20))
-                            .foregroundStyle(.white)
-                            .rotationEffect(Angle(degrees: 20))
-                            .padding(.leading, 180)
+                        Spacer()
                         
-                        Image("shiro")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 200)
-                            .padding(.bottom, 30)
+                        settingOptionRow(for: .sounds, isOn: settings.isSoundEnabled)
+                        settingOptionRow(for: .haptics, isOn: settings.isHapticsEnabled)
                         
-                        menuOptionText(for: .play)
-                        menuOptionText(for: .settings)
-                        menuOptionText(for: .leaderboard)
+                        Spacer()
+                        
+                        settingOptionRow(for: .back, isOn: false)
+                            .padding(.bottom, 24)
                     }
+                    .padding(.horizontal, 40)
+                    
+                    Spacer()
                 }
                 .frame(width: 364, height: 415)
-                .background(
-                        GIFView(gifName: "backgroundGIF")
-                        .frame(width: 361, height: 415)
-                )
+                .clipped()
                 .padding(.top, 8)
                 .padding(.horizontal, 8)
-                                
+                
                 Text("SaguBoy")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.consoleText)
@@ -76,45 +74,48 @@ struct MenuView: View {
                 onDirection: handleDirection,
                 onA: { pressed in
                     if pressed {
-                        viewModel.selectCurrentOption()
+                        viewModel.toggleSelectedOption()
                         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                     }
                 },
-                onB: { _ in },
-                onStart: { pressed in
-                    if pressed {
-                        viewModel.selectCurrentOption()
-                        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-                    }
-                }
+                onB: { _ in onBack() }, // Botão B para voltar
+                onStart: { _ in }
             )
+            
         }
         .padding(.top, 8)
         .background(Image("metalico").resizable().scaledToFill()
         .ignoresSafeArea(.container, edges: .bottom))
         .background(Color.black)
         .onAppear {
-            viewModel.onPlay = onPlay
-            viewModel.onSettings = onSettings
-            viewModel.onLeaderboard = onLeaderboard
+            viewModel.onBack = onBack
         }
     }
     
     @ViewBuilder
-    private func menuOptionText(for option: MenuOption) -> some View {
+    private func settingOptionRow(for option: SettingsOption, isOn: Bool) -> some View {
         let isSelected = viewModel.selectedOption == option
-        Text(String(describing: option))
-            .font(.custom("JetBrainsMonoNL-Regular", size: 24))
-            .bold()
-            .foregroundStyle(isSelected ? .black : .white)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-                RoundedRectangle(cornerRadius: 4)
-                    .foregroundStyle(isSelected ? Color.white : Color.clear)
-            )
-            .scaleEffect(isSelected ? 1.1 : 1.0)
-            .animation(.bouncy(duration: 0.2), value: viewModel.selectedOption)
+        
+        HStack {
+            Text(String(describing: option))
+                .font(.custom("JetBrainsMonoNL-Regular", size: 22))
+            
+            
+            if option != .back {
+                Spacer()
+                Text(isOn ? "on" : "off")
+                    .font(.custom("JetBrainsMonoNL-Bold", size: 22))
+            }
+        }
+        .foregroundStyle(isSelected ? .black : .white)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(
+            RoundedRectangle(cornerRadius: 4)
+                .foregroundStyle(isSelected ? Color.white : Color.clear)
+        )
+        .scaleEffect(isSelected ? 1.1 : 1.0)
+        .animation(.bouncy(duration: 0.2), value: viewModel.selectedOption)
     }
     
     private func handleDirection(dir: Direction, pressed: Bool) {

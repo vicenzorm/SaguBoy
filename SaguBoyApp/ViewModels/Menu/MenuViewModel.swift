@@ -8,25 +8,23 @@
 import Foundation
 import GameplayKit
 
+@Observable
 @MainActor
-class MenuViewModel: ObservableObject {
+class MenuViewModel {
     
-    @Published var selectedOption: MenuOption = .play
+    var selectedOption: MenuOption = .play
     
     private var stateMachine: GKStateMachine!
     
-    // Ações para serem executadas quando uma opção for selecionada
     var onPlay: () -> Void = {}
     var onSettings: () -> Void = {}
     var onLeaderboard: () -> Void = {}
     
     init() {
-        // Inicializamos os estados, passando uma referência de self (o ViewModel)
         let playState = MenuPlayState(viewModel: self, option: .play)
         let settingsState = MenuSettingsState(viewModel: self, option: .settings)
         let leaderboardState = MenuLeaderboardState(viewModel: self, option: .leaderboard)
         
-        // Criamos a máquina de estados e definimos o estado inicial
         self.stateMachine = GKStateMachine(states: [playState, settingsState, leaderboardState])
         self.stateMachine.enter(MenuPlayState.self)
     }
@@ -58,11 +56,9 @@ class MenuViewModel: ObservableObject {
         case .play:
             onPlay()
         case .settings:
-            onSettings() // Implementar a tela de configurações depois
-            print("Settings selecionado!")
+            onSettings()
         case .leaderboard:
-            onLeaderboard() // Implementar a tela de leaderboard depois
-            print("Leaderboard selecionado!")
+            onLeaderboard()
         }
     }
 }

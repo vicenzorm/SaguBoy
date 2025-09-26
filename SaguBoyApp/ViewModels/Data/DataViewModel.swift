@@ -8,22 +8,27 @@
 import Foundation
 import SwiftData
 import SwiftUICore
+import Observation
 
-final class DataViewModel: DataViewModelProtocol {
-        private var modelContext: ModelContext
-        
-        var score: Ponctuation?
-        var scores: [Ponctuation] = []
-        
-        init(modelContext: ModelContext) {
-            self.modelContext = modelContext
-        }
-        
-    func fetchScores() {
+@Observable
+final class DataViewModel {
+    private var modelContext: ModelContext
+    
+    var score: Ponctuation?
+    var scores: [Ponctuation] = []
+    
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+    }
+    
+    func fetchScores(limit: Int? = nil) {
         do {
-            let descriptor = FetchDescriptor<Ponctuation>(
+            var descriptor = FetchDescriptor<Ponctuation>(
                 sortBy: [SortDescriptor(\.score, order: .reverse)]
             )
+            if let limit = limit {
+                descriptor.fetchLimit = limit
+            }
             scores = try modelContext.fetch(descriptor)
         } catch {
             print("Erro ao buscar pontuações: \(error.localizedDescription)")
@@ -41,10 +46,11 @@ final class DataViewModel: DataViewModelProtocol {
             print("Erro ao buscar melhor pontuação: \(error.localizedDescription)")
         }
     }
-  func addScore(value: Int) {
+    func addScore(value: Int) {
         let newScore = Ponctuation(score: value)
         modelContext.insert(newScore)
         do {
+            print ("salvou a pontuacao")
             try modelContext.save()
         } catch {
             print("nao foi possivel salvar a pontuacao")

@@ -21,6 +21,8 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
         super.init()
     }
     public func startBackgroundMusic() {
+        guard SettingsManager.shared.isSoundEnabled else { return }
+        
         if musicPlayer?.isPlaying ?? false {
             return
         }
@@ -31,6 +33,8 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
     }
     
     private func playBackgroundTrack() {
+        guard SettingsManager.shared.isSoundEnabled else { return }
+        
         currentTrackIndex += 1
         if currentTrackIndex >= musicPlaylist.count {
             currentTrackIndex = 0
@@ -42,23 +46,27 @@ class AudioManager: NSObject, AVAudioPlayerDelegate {
     }
     
     public func playRUSHTrack() {
+        guard SettingsManager.shared.isSoundEnabled else { return }
         stopMusic()
         playTrack(trackName: "RUSHmusic")
     }
     
     public func playMENUTrack() {
+        guard SettingsManager.shared.isSoundEnabled else { return }
         stopMusic()
         playTrack(trackName: "MENUmusic")
     }
     
     public func playDEFEATTrack() {
+        guard SettingsManager.shared.isSoundEnabled else { return }
         stopMusic()
         playTrack(trackName: "DEFEATmusic")
     }
     
     private func playTrack(trackName: String) {
-        guard let musicURL = Bundle.main.url(forResource: trackName, withExtension: "mp3") else {
-            print("nao foi possivel achar a musica \(trackName)")
+        guard SettingsManager.shared.isSoundEnabled,
+              let musicURL = Bundle.main.url(forResource: trackName, withExtension: "mp3") else {
+            print("Música desativada ou não foi possível achar a musica \(trackName)")
             return
         }
         do {
