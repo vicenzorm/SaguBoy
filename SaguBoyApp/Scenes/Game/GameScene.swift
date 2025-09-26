@@ -137,7 +137,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             performDash()
             lastDashTime = currentTime
         }
-        run(dashSound)
+        
+        if SettingsManager.shared.isSoundEnabled {
+            run(dashSound)
+        }
     }
     
     private func performDash() {
@@ -506,7 +509,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func handlePlayerHit() {
         guard !isPlayerInvincible else { return }
         
-        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+        if SettingsManager.shared.isHapticsEnabled {
+            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+        }
         
         playerLifes = max(0, playerLifes - 1)
         startInvincibilityBlink()
@@ -514,13 +519,19 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         if playerLifes <= 0 {
             gameOver()
         }
-        run(hitSound)
+        
+        if SettingsManager.shared.isSoundEnabled {
+            run(hitSound)
+        }
     }
     
     private func collectPowerup(_ contact: SKPhysicsContact) {
         let powerNode = (contact.bodyA.categoryBitMask == PhysicsCategory.powerup) ? contact.bodyA.node : contact.bodyB.node
         powerNode?.removeFromParent()
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        
+        if SettingsManager.shared.isHapticsEnabled {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        }
         
         powerupCharges = 1
         
@@ -528,7 +539,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let s2 = SKAction.scale(to: 1.0, duration: 0.08)
         
         player.run(.sequence([s1, s2]))
-        run(powerUpSound)
+        
+        if SettingsManager.shared.isSoundEnabled {
+            run(powerUpSound)
+        }
     }
     
     private func startInvincibilityBlink() {
@@ -568,7 +582,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         wind.run(SKAction.sequence([wait, disablePhysics]))
-        run(WindHitSound)
+        
+        if SettingsManager.shared.isHapticsEnabled {
+            run(WindHitSound)
+        }
     }
     
     private func disableWindPhysicBody(_ contact: SKPhysicsContact) {

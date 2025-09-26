@@ -56,7 +56,11 @@ struct AnalogStick: View {
                             let newDir = directionFromAngle(angle, distance: distance)
 
                             if newDir != currentDirection {
-                                if newDir != nil { feedbackGenerator.impactOccurred() }
+                                if newDir != nil {
+                                    if SettingsManager.shared.isHapticsEnabled {
+                                        feedbackGenerator.impactOccurred()
+                                    }
+                                }
                                 if let cur = currentDirection { onDirectionChanged(cur, false) }
                                 if let nd = newDir { onDirectionChanged(nd, true) }
                                 currentDirection = newDir
