@@ -72,7 +72,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var dashCooldown: TimeInterval = 1.5 // Tempo de recarga do dash
     private var lastDashTime: TimeInterval = 0
     private var isDashing: Bool = false
-    private var dashDuration: TimeInterval = 0.2 // Duração do dash
+    private var dashDuration: TimeInterval = 0.5 // Duração do dash
     private var dashSpeedMultiplier: CGFloat = 3.0 // Multiplicador de velocidade durante o dash
     
     // MARK: - Pause Menu
@@ -415,12 +415,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         isDashing = true
         currentPlayerSpeed = playerSpeed * dashSpeedMultiplier
         
-        // Efeito visual durante o dash
-        let flashAction = SKAction.sequence([
-            SKAction.colorize(with: .cyan, colorBlendFactor: 0.8, duration: 0.1),
-            SKAction.colorize(with: .white, colorBlendFactor: 0, duration: 0.1)
-        ])
-        player.run(flashAction)
+        player.stateMachine.enter(DashState.self)
         
         // Partículas de dash
         if let dashParticles = SKEmitterNode(fileNamed: "DashParticles") {
@@ -468,6 +463,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                 self.player.run(SKAction.colorize(with: .white, colorBlendFactor: 0, duration: 0.1))
             }
         ]))
+        
     }
     
     private func setupGIFBackground() {
