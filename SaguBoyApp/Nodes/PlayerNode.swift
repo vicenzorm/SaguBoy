@@ -13,7 +13,7 @@ class PlayerNode: SKNode {
     
     private var currentAnimationSprite: SKSpriteNode?
     
-    let animationFrameRate = 60.0
+    let animationFrameRate = 24.0
     
     var timePerFrame: TimeInterval {
         1.0 / animationFrameRate
