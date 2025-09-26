@@ -1,156 +1,186 @@
-//
 //  GameView.swift
-//  POC-GameplayKit
+//  SaguBoyApp
 //
 //  Created by Vicenzo Másera on 03/09/25.
 //
 import SwiftUI
 import SpriteKit
+import SwiftData
+
+enum Screen {
+    case menu
+    case settings
+    case game
+    case leaderboard
+}
 
 struct GameView: View {
-
-    @State private var gameCenterViewModel = GameCenterViewModel()
-
-    private func makeScene(size: CGSize) -> GameScene {
-        let scene = GameScene()
-        scene.size = size
-        scene.scaleMode = .resizeFill
-
-        scene.onLivesChanged = { lives in
-            self.lives = lives
-        }
-        scene.onGameOver = {
-            Task { await gameCenterViewModel.submitScore(score: self.points, leaderboardID: "mainHighScore") }
-            self.isGameOver = true
-        }
-        scene.onPointsChanged = { points in
-            self.points = points
-        }
-        scene.onPowerupChanged = {
-            self.powerups = $0
-        }
-        return scene
-    }
-
-    // HUD state
+    
+    @Environment(\.modelContext) private var modelContext
+    @State var gameCenterViewModel = GameCenterViewModel()
+    var dataViewModel: DataViewModel
+    
     @State private var points: Int = 0
     @State private var lives: Int = 3
     @State private var powerups: Int = 0
     @State private var isGameOver: Bool = false
-    @State private var scene: GameScene = GameScene()
     
-
+    @State private var scene: GameScene? = nil
+    @State private var currentScreen: Screen = .menu
+    
     var body: some View {
+        ZStack {
+            switch currentScreen {
+            case .menu:
+                MenuView(
+                    onPlay: { prepareAndStartGame() },
+                    onSettings: { currentScreen = .settings },
+                    onLeaderboard: { currentScreen = .leaderboard } // <-- Adicionado
+                )
+                .transition(.opacity)
+            case .settings:
+                SettingsView(onBack: { returnToMenu() })
+                    .transition(.opacity)
+            case .leaderboard:
+                LeaderboardView(
+                    dataViewModel: dataViewModel,
+                    onBack: { returnToMenu() }
+                )
+            case .game:
+                if let scene = scene {
+                    gameplayView(scene: scene)
+                        .transition(.opacity)
+                }
+            }
+        }
+        .animation(.default, value: currentScreen)
+        .onAppear { gameCenterViewModel.authPlayer() }
+    }
+    
+    private func prepareAndStartGame() {
+        let size = CGSize(width: 364, height: 415)
+        let newScene = makeScene(size: size)
+        self.scene = newScene
+        self.currentScreen = .game
+        
+        // Garante que o jogo comece não pausado
+        self.isGameOver = false
+        self.lives = 3
+        self.powerups = 0
+        self.points = 0
+    }
+    
+    private func makeScene(size: CGSize) -> GameScene {
+        let scene = GameScene(size: size)
+        scene.scaleMode = .resizeFill
+        scene.onLivesChanged = { lives in self.lives = lives }
+        scene.onGameOver = {
+            Task { await gameCenterViewModel.submitScore(score: self.points, leaderboardID: "mainHighScore") }
+            dataViewModel.addScore(value: self.points)
+            print(dataViewModel.scores)
+            self.isGameOver = true
+        }
+        scene.onPointsChanged = { points in self.points = points }
+        scene.onPowerupChanged = { self.powerups = $0 }
+        return scene
+    }
+    
+    @ViewBuilder
+    private func gameplayView(scene: GameScene) -> some View {
         VStack(spacing: 0) {
+            
             ZStack(alignment: .topLeading) {
+                
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(.consoleBackground)
+                    .fill(Color("consoleBackground"))
                     .frame(width: 380, height: 476)
                     .shadow(radius: 8)
-
+                
                 SpriteView(scene: scene)
                     .frame(width: 364, height: 415)
                     .clipped()
-                    .onAppear {
-                        // tamanho da cena igual à área útil visível
-                        scene = makeScene(size: CGSize(width: 364, height: 415))
-                    }
-                    .padding(.top, 8)
-                    .padding(.horizontal, 8)
-
-                // HUD (fica acima do SpriteView)
-                HStack(spacing: 8) {
-                    Text("Vidas: ")
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                        .padding(.leading, 12)
-
-                    ForEach(0..<lives, id: \.self ) {_ in
-                        Image("heart")
-                            .resizable()
-                            .renderingMode(.original)
-                            .frame(width: 12, height: 12)
-                    }
-                        .font(.headline.monospacedDigit())
-                                            
-                    Text("Pontos: \(points)")
-                        .font(.headline.monospacedDigit())
-                        .foregroundStyle(.white)
-                        .padding(6)
-                    Text("Power: \(powerups)/1")
-                        .font(.headline.monospacedDigit())
-                        .foregroundStyle(.white)
-                        .padding(6)
-                }
+                    .padding([.top, .horizontal], 8)
                 
                 Text("SaguBoy")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.consoleText)
                     .padding(.top, 450)
                     .padding(.leading, 8)
+                
                 Text("Color SB")
-                    .font(.system(size: 8, weight: .medium))
+                    .font(.system(size: 8, weight: .regular))
                     .foregroundStyle(.consoleText)
-                    .padding(.top, 444)
+                    .padding(.top, 445)
                     .padding(.leading, 77)
-                    
-
-                // Overlay de Game Over cobrindo só a área do jogo
+                
+                HStack(spacing: 8) {
+                    Text("Vidas: ").fontWeight(.semibold).foregroundStyle(.white).padding(.leading, 12)
+                    ForEach(0..<lives, id: \.self ) {_ in Image("heart").resizable().renderingMode(.original).frame(width: 12, height: 12) }
+                    Text("Pontos: \(points)").font(.headline.monospacedDigit()).foregroundStyle(.white).padding(6)
+                    Text("Power: \(powerups)/1").font(.headline.monospacedDigit()).foregroundStyle(.white).padding(6)
+                }
+                
                 if isGameOver {
-                    VStack(spacing: 12) {
-                        Text("GAME OVER")
-                            .font(.largeTitle.bold())
-                            .foregroundStyle(.white)
+                    VStack(spacing: 60) {
+                        Text("Your score: \(points)").foregroundStyle(.white).font(.custom("JetBrainsMonoNL-Regular", size: 16)).bold()
+                        Text("You died").foregroundStyle(.white).font(.custom("JetBrainsMonoNL-Regular", size: 48)).bold()
+                        VStack(spacing: 16) {
+                            Text("press A to play again").foregroundStyle(.white).font(.custom("JetBrainsMonoNL-Regular", size: 16))
+                            Text("press START to return to menu").foregroundStyle(.white).font(.custom("JetBrainsMonoNL-Regular", size: 16))
+                        }
                     }
-                    .frame(width: 364, height: 415)
-                    .background(Color.black.opacity(0.5))
-                    .padding(.top, 8)
-                    .padding(.horizontal, 8)
-                    .onTapGesture {
-                        isGameOver = false
-                        lives = 3
-                        powerups = 0
-                        scene.resetGame()
-                    }
+                    .frame(width: 364, height: 415).background(Color.black.opacity(0.7)).padding([.top, .horizontal], 8)
                 }
             }
             
             Spacer()
-
+            
             ControllersView(
-                onDirection: { dir, pressed in
-                    scene.setDirection(dir, active: pressed)
-                },
+                onDirection: { dir, pressed in scene.setDirection(dir, active: pressed) },
                 onA: { pressed in
                     if pressed {
-                        scene.handleA(pressed: pressed)
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        if isGameOver { resetGame() } else { scene.handleA(pressed: pressed) }
                     }
                 },
-                onB: { pressed in
-                    if pressed {
-                        scene.handleB(pressed: pressed) 
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                    }
-                },
+                onB: { pressed in if pressed { scene.handleB(pressed: pressed); UIImpactFeedbackGenerator(style: .medium).impactOccurred() } },
                 onStart: { pressed in
                     if pressed {
                         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        scene.handleStart(pressed: pressed)
                         if isGameOver {
                             isGameOver = false
                             lives = 3
                             powerups = 0
-                            scene.resetGame()
-                        } else {
-                            
+                            points = 0
+                            currentScreen = .menu
                         }
                     }
                 }
             )
         }
         .padding(.top, 8)
-        .background(Image(.metalico).resizable().scaledToFill().ignoresSafeArea(.container, edges: .bottom))
+        .background(Image("metalico").resizable().scaledToFill()
+            .ignoresSafeArea(.container, edges: .bottom))
         .background(Color.black)
-        .onAppear { gameCenterViewModel.authPlayer() }
+        
+    }
+    
+    private func resetGame() {
+        isGameOver = false
+        lives = 3
+        powerups = 0
+        points = 0
+        scene?.resetGame()
+    }
+    
+    private func returnToMenu() {
+        AudioManager.shared.stopMusic()
+        isGameOver = false
+        lives = 3
+        powerups = 0
+        points = 0
+        scene = nil
+        currentScreen = .menu
     }
 }

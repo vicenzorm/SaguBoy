@@ -10,13 +10,10 @@ import GameplayKit
 class DashState: PlayerState {
     
     override func didEnter(from previousState: GKState?) {
-        if let texture = player.dashTextures {
-            player.texture = texture
-        }
+        player.transitionToStaticSprite(texture: player.dashTexture)
     }
     
     override func willExit(to nextState: GKState) {
-        // nada para os que nao sao loop
     }
     
     override func isValidNextState(_ stateClass: AnyClass) -> Bool {

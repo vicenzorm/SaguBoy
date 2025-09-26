@@ -10,9 +10,22 @@
 		C58950102E70B9C800D2E4C1 /* SaguBoyApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SaguBoyApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C55B0BFA2E8728E50092286E /* Exceptions for "SaguBoyApp" folder in "SaguBoyApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C589500F2E70B9C800D2E4C1 /* SaguBoyApp */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C58950122E70B9C800D2E4C1 /* SaguBoyApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C55B0BFA2E8728E50092286E /* Exceptions for "SaguBoyApp" folder in "SaguBoyApp" target */,
+			);
 			path = SaguBoyApp;
 			sourceTree = "<group>";
 		};
@@ -258,7 +271,6 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = K7J6QAV9ZN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Shiro.;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -294,7 +306,6 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = K7J6QAV9ZN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Shiro.;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
