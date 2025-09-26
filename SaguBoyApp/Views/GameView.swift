@@ -62,6 +62,12 @@ struct GameView: View {
         let newScene = makeScene(size: size)
         self.scene = newScene
         self.currentScreen = .game
+        
+        // Garante que o jogo comece não pausado
+        self.isGameOver = false
+        self.lives = 3
+        self.powerups = 0
+        self.points = 0
     }
     
     private func makeScene(size: CGSize) -> GameScene {
@@ -141,7 +147,14 @@ struct GameView: View {
                 onStart: { pressed in
                     if pressed {
                         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-                        if isGameOver { returnToMenu() }
+                        scene.handleStart(pressed: pressed)
+                        if isGameOver {
+                            isGameOver = false
+                            lives = 3
+                            powerups = 0
+                            points = 0
+                            currentScreen = .menu
+                        }
                     }
                 }
             )

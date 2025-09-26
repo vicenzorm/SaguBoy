@@ -50,9 +50,13 @@ struct MenuView: View {
                     }
                 }
                 .frame(width: 364, height: 415)
-                .clipped()
-                .padding([.top,.horizontal], 8)
-                
+                .background(
+                        GIFView(gifName: "backgroundGIF")
+                        .frame(width: 361, height: 415)
+                )
+                .padding(.top, 8)
+                .padding(.horizontal, 8)
+                                
                 Text("SaguBoy")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.consoleText)

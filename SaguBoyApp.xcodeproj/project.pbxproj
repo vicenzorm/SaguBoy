@@ -11,7 +11,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		E14245802E8459A10045D2E0 /* Exceptions for "SaguBoyApp" folder in "SaguBoyApp" target */ = {
+		C56C6E7E2E845D8A002BAB52 /* Exceptions for "SaguBoyApp" folder in "SaguBoyApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -24,7 +24,7 @@
 		C58950122E70B9C800D2E4C1 /* SaguBoyApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				E14245802E8459A10045D2E0 /* Exceptions for "SaguBoyApp" folder in "SaguBoyApp" target */,
+				C56C6E7E2E845D8A002BAB52 /* Exceptions for "SaguBoyApp" folder in "SaguBoyApp" target */,
 			);
 			path = SaguBoyApp;
 			sourceTree = "<group>";
@@ -271,7 +271,6 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = K7J6QAV9ZN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = SaguBoyApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -307,7 +306,6 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = K7J6QAV9ZN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = SaguBoyApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
