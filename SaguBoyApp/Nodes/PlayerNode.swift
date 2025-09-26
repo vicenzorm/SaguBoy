@@ -109,49 +109,56 @@ class PlayerNode: SKNode {
     }
     
     func loadDown() {
-        let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 2...60 {
+        let atlas = SKTextureAtlas(named: "maincharacter")
+        for i in 1...8 {
             let textureName = String(format: "%04d", i)
-            downTextures.append(atlas.textureNamed(textureName))
+            let texture = atlas.textureNamed(textureName)
+            texture.filteringMode = .nearest
+            downTextures.append(texture)
         }
     }
     
     func loadLeft() {
-        let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 2...60 {
+        let atlas = SKTextureAtlas(named: "maincharacter")
+        for i in 1...8 {
             let textureName = String(format: "%04d", i)
-            leftTextures.append(atlas.textureNamed(textureName))
+            let texture = atlas.textureNamed(textureName)
+            texture.filteringMode = .nearest
+            leftTextures.append(texture)
         }
     }
     
     func loadRight() {
-        let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 2...60 {
+        let atlas = SKTextureAtlas(named: "maincharacter")
+        for i in 1...8 {
             let textureName = String(format: "%04d", i)
-            rightTextures.append(atlas.textureNamed(textureName))
+            let texture = atlas.textureNamed(textureName)
+            texture.filteringMode = .nearest
+            rightTextures.append(texture)
         }
     }
     
     func loadUp() {
-        let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 2...60 {
+        let atlas = SKTextureAtlas(named: "maincharacter")
+        for i in 1...8 {
             let textureName = String(format: "%04d", i)
-            upTextures.append(atlas.textureNamed(textureName))
+            let texture = atlas.textureNamed(textureName)
+            texture.filteringMode = .nearest
+            upTextures.append(texture)
         }
     }
     
     func loadIdle() {
-        let atlas = SKTextureAtlas(named: "mainCharacter")
+        let atlas = SKTextureAtlas(named: "maincharacter")
         let textureName = String(format: "%04d", 2)
         idleTexture = atlas.textureNamed(textureName)
+        idleTexture?.filteringMode = .nearest
     }
     
     func loadDash() {
-        let atlas = SKTextureAtlas(named: "mainCharacter")
+        let atlas = SKTextureAtlas(named: "maincharacter")
         let textureName = String(format: "%04d", 38)
         dashTexture = atlas.textureNamed(textureName)
-
+        dashTexture?.filteringMode = .nearest
     }
-    
-    
 }

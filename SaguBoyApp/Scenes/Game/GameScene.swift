@@ -87,6 +87,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Ciclo de vida
     override func didMove(to view: SKView) {
+        
+        view.ignoresSiblingOrder = true
+        view.isMultipleTouchEnabled = true
+        view.showsFPS = true
+        view.showsNodeCount = true
+        
         print(Bundle.main.bundlePath)
         // Configura o fundo com GIF
         setupGIFBackground()
@@ -601,7 +607,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Setup
     private func setupPlayer() {
-        let atlas = SKTextureAtlas(named: "mainCharacter")
+        let atlas = SKTextureAtlas(named: "maincharacter")
         let playerTexture = atlas.textureNamed("0002")
         
         let node = PlayerNode()
