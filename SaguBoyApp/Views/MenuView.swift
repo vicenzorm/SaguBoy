@@ -51,13 +51,8 @@ struct MenuView: View {
                 }
                 .frame(width: 364, height: 415)
                 .background(
-                    ZStack {
-                        Image(.background)
-                            .resizable()
-                            .scaledToFill()
                         GIFView(gifName: "backgroundGIF")
-                    }
-                        .frame(width: 364, height: 415)
+                        .frame(width: 361, height: 415)
                 )
                 .padding(.top, 8)
                 .padding(.horizontal, 8)
