@@ -8,6 +8,7 @@ import SpriteKit
 import SwiftData
 
 enum Screen {
+    case splash
     case menu
     case settings
     case game
@@ -26,26 +27,34 @@ struct GameView: View {
     @State private var isGameOver: Bool = false
     
     @State private var scene: GameScene? = nil
-    @State private var currentScreen: Screen = .menu
-    
+    @State private var currentScreen: Screen = .splash
+
     var body: some View {
         ZStack {
             switch currentScreen {
+            case .splash:
+                SplashScreenView()
+                    .transition(.opacity)
+
             case .menu:
                 MenuView(
                     onPlay: { prepareAndStartGame() },
                     onSettings: { currentScreen = .settings },
-                    onLeaderboard: { currentScreen = .leaderboard } // <-- Adicionado
+                    onLeaderboard: { currentScreen = .leaderboard }
                 )
                 .transition(.opacity)
+
             case .settings:
                 SettingsView(onBack: { returnToMenu() })
                     .transition(.opacity)
+
             case .leaderboard:
                 LeaderboardView(
                     dataViewModel: dataViewModel,
                     onBack: { returnToMenu() }
                 )
+                .transition(.opacity)
+
             case .game:
                 if let scene = scene {
                     gameplayView(scene: scene)
@@ -53,9 +62,16 @@ struct GameView: View {
                 }
             }
         }
-        .animation(.default, value: currentScreen)
-        .onAppear { gameCenterViewModel.authPlayer() }
+        .animation(.easeOut(duration: 1.0), value: currentScreen)
+        .onAppear {
+            gameCenterViewModel.authPlayer()
+            // Sai da splash depois de 3 segundos
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                self.currentScreen = .menu
+            }
+        }
     }
+
     
     private func prepareAndStartGame() {
         let size = CGSize(width: 364, height: 415)
