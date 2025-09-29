@@ -7,8 +7,7 @@
 
 import Foundation
 import SwiftData
-import SwiftUICore
-import Observation
+import SwiftUI
 
 @Observable
 final class DataViewModel {
