@@ -150,14 +150,14 @@ class PlayerNode: SKNode {
     
     func loadIdle() {
         let atlas = SKTextureAtlas(named: "maincharacter")
-        let textureName = String(format: "%04d", 2)
+        let textureName = String(format: "%04d", 1)
         idleTexture = atlas.textureNamed(textureName)
         idleTexture?.filteringMode = .nearest
     }
     
     func loadDash() {
         let atlas = SKTextureAtlas(named: "maincharacter")
-        let textureName = String(format: "%04d", 10)
+        let textureName = String(format: "%04d", 1)
         dashTexture = atlas.textureNamed(textureName)
         dashTexture?.filteringMode = .nearest
     }
