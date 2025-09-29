@@ -9,11 +9,11 @@ import GameplayKit
 
 class PlayerNode: SKNode {
     
-    private let desiredSpriteSize = CGSize(width: 39, height: 70)
+    private let desiredSpriteSize = CGSize(width: 48, height: 64)
     
     private var currentAnimationSprite: SKSpriteNode?
     
-    let animationFrameRate = 24.0
+    let animationFrameRate = 12.0
     
     var timePerFrame: TimeInterval {
         1.0 / animationFrameRate
