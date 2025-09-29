@@ -110,7 +110,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         // Configura observadores do estado do app
         setupAppStateObservers()
         
-        AudioManager.shared.startBackgroundMusic()
+        AudioManager.shared.playGAMETrack()
     }
     
     // MARK: - Estados do App
@@ -319,6 +319,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         hidePauseMenu()
         isPausedMenuActive = false
         wasPausedByAppBackground = false
+        
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.playGAMETrack()
+        }
     }
     
     func handleA(pressed: Bool) {
@@ -459,6 +463,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func showPauseMenu() {
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.muteMusic()
+        }
         isGameRunning = false
         self.isPaused = true
         
@@ -571,6 +578,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         optionBackgrounds = []
         isPausedMenuActive = false
         wasPausedByAppBackground = false
+        
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.unmuteMusic()
+        }
     }
     
     // MARK: - Setup
@@ -970,6 +981,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         removeAction(forKey: "spawnLoop")
         removeAction(forKey: "enemyLoop")
         removeAction(forKey: "powerupLoop")
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.playDEFEATTrack()
+        }
         onGameOver?()
     }
     

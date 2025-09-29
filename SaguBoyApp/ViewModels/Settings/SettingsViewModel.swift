@@ -56,6 +56,11 @@ class SettingsViewModel {
         switch selectedOption {
         case .sounds:
             SettingsManager.shared.isSoundEnabled.toggle()
+            if SettingsManager.shared.isSoundEnabled {
+                AudioManager.shared.playMENUTrack()
+            } else {
+                AudioManager.shared.stopMusic()
+            }
         case .haptics:
             SettingsManager.shared.isHapticsEnabled.toggle()
         case .back:
