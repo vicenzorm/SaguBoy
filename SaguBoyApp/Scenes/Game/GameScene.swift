@@ -39,7 +39,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
     // MARK: - Inimigos
     private let spawnIntervalEnemies: TimeInterval = 0.8
-    private let spawnIntervalWind: TimeInterval = 1.5
+    private let spawnIntervalWind: TimeInterval = 2.2
     private let enemyMinYToRemove: CGFloat = -60
     
     // MARK: - Power-up
@@ -217,44 +217,29 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func restartAllMovements() {
-        // Reinicia movimento dos inimigos
         enumerateChildNodes(withName: "enemy") { node, _ in
             let distance = self.size.height + 120
             let speed: CGFloat = 140
             let duration = TimeInterval(distance / speed)
-            
-            let move = SKAction.moveBy(x: 0, y: -distance, duration: duration)
-            let remove = SKAction.removeFromParent()
-            node.run(.sequence([move, remove]))
+            node.run(.sequence([.moveBy(x: 0, y: -distance, duration: duration), .removeFromParent()]))
         }
-        
-        // Reinicia movimento dos powerups
+
         enumerateChildNodes(withName: "powerup") { node, _ in
             let distance = self.size.height + 120
             let speed: CGFloat = 100
             let duration = TimeInterval(distance / speed)
-            
             node.run(.sequence([.moveBy(x: 0, y: -distance, duration: duration), .removeFromParent()]))
         }
-        
-        // Reinicia movimento dos ventos
-        enumerateChildNodes(withName: "//SKShapeNode") { node, _ in
-            // Verifica se é um vento (pela cor ou outras características)
-            if let shapeNode = node as? SKShapeNode, shapeNode.fillColor == .blue {
-                let distance = self.size.width + 80
-                let duration: TimeInterval = 4
-                
-                // Determina a direção baseada na posição atual
-                let shouldMoveLeft = node.position.x > self.size.width / 2
-                let move = shouldMoveLeft ?
-                    SKAction.moveBy(x: -distance, y: 0, duration: duration) :
-                    SKAction.moveBy(x: distance, y: 0, duration: duration)
-                
-                let remove = SKAction.removeFromParent()
-                node.run(SKAction.sequence([move, remove]))
-            }
+
+        enumerateChildNodes(withName: "wind") { node, _ in
+            let distance = self.size.width + (node.frame.width) + 80
+            let duration: TimeInterval = 4.0
+            let shouldMoveLeft = node.position.x > self.size.width / 2
+            let dx = shouldMoveLeft ? -distance : distance
+            node.run(.sequence([.moveBy(x: dx, y: 0, duration: duration), .removeFromParent()]))
         }
     }
+
     
     // MARK: - Controle de Ações dos Nodes
     private func removeAllActionsFromAllNodes() {
@@ -302,21 +287,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             if active { activeDirections.insert(dir) } else { activeDirections.remove(dir) }
         }
     }
-
-//    private func updatePauseMenuSelection() {
-//        for (i, label) in pauseOptions.enumerated() {
-//            let isSelected = (i == selectedPauseIndex)
-//            
-//            // Atualizar retângulo de fundo
-//            optionBackgrounds[i].isHidden = !isSelected
-//            
-//            // Atualizar cor do texto (selecionado = preto, outros = branco)
-//            label.fontColor = isSelected ? .black : .white
-//            
-//            // Atualizar fonte para destacar seleção (opcional)
-//            label.fontName = isSelected ? "JetBrainsMonoNL-Bold" : "JetBrainsMonoNL-Regular"
-//        }
-//    }
     
     func resetGame() {
         // Para tudo primeiro
@@ -606,7 +576,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Setup
     private func setupPlayer() {
         let atlas = SKTextureAtlas(named: "maincharacter")
-        let playerTexture = atlas.textureNamed("0002")
+        let playerTexture = atlas.textureNamed("0001")
         
         let node = PlayerNode()
         let physicsSize = CGSize(width: 35, height: 65)
@@ -676,16 +646,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         } else {
             switch kind {
             case .round:
-                let imageName = "bolaNeve"
-                let shape = SKSpriteNode(imageNamed: imageName)
-                shape.size = CGSize(width: 18, height: 18)
+                let shape = BolaNode()
+                shape.size = CGSize(width: 30, height: 30)
                 shape.position = pos
                 shape.physicsBody = SKPhysicsBody(circleOfRadius: size.width * 0.5)
                 node = shape
             case .box:
                 let shape = TroncoNode()
                 shape.position = pos
-                shape.size = CGSize(width: 68, height: 18)
                 let rect = CGRect(x: -size.width/2, y: -size.height/2, width: size.width, height: size.height)
                 let path = CGPath(roundedRect: rect, cornerWidth: kind.cornerRadius, cornerHeight: kind.cornerRadius, transform: nil)
                 shape.physicsBody = SKPhysicsBody(polygonFrom: path)
@@ -714,49 +682,40 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private func spawnWind() {
         guard let view = view else { return }
-        
-        var wind: SKShapeNode!
-        let frame = CGSize(width: 10, height: 100)
-        wind = SKShapeNode(rectOf: frame)
-        wind.fillColor = .blue
-        wind.strokeColor = .clear
-        
-        let safeArea = CGFloat(view.safeAreaInsets.top + 100)
-        
-        
-        
-        // Gere o vento dentro da SafeArea (Entre states do jogador e os controles da metade da tela)
-        let randomY = CGFloat.random(in: 50...self.size.height - safeArea)
-        
-        let randomX_rigth = CGFloat(self.size.width + 40)
-        let randomX_left = CGFloat(0)
-        
-        guard let randomX = [randomX_left, randomX_rigth].randomElement() else { return }
-        
-        wind.position = CGPoint(x: randomX, y: randomY)
-        print("RandomX -> ",randomX)
-        
-        // Corpo físico
-        
-        wind.physicsBody = SKPhysicsBody(rectangleOf: frame)
+
+        let safeAreaTop = CGFloat(view.safeAreaInsets.top + 100)
+        let randomY = CGFloat.random(in: 50...self.size.height - safeAreaTop)
+
+        let fromLeft = Bool.random()
+        let asset = fromLeft ? "ventoDir" : "ventoEsq"
+
+        // crie o sprite
+        let wind = SKSpriteNode(imageNamed: asset)
+        wind.name = "wind"
+        wind.zPosition = 5
+        if let tex = wind.texture { tex.filteringMode = .nearest }
+
+        let desiredWindSize = CGSize(width: 45, height: 120)
+        wind.size = desiredWindSize
+
+        let startX = fromLeft ? -wind.size.width/2 - 40 : self.size.width + wind.size.width/2 + 40
+        wind.position = CGPoint(x: startX, y: randomY)
+
+        wind.physicsBody = SKPhysicsBody(rectangleOf: desiredWindSize)
         wind.physicsBody?.isDynamic = true
         wind.physicsBody?.allowsRotation = false
         wind.physicsBody?.categoryBitMask = PhysicsCategory.wind
         wind.physicsBody?.contactTestBitMask = PhysicsCategory.player
         wind.physicsBody?.collisionBitMask = PhysicsCategory.player
-        
-        
+
         addChild(wind)
-        
-        // Move o vento de forma aleatória (Para direita ou esquerda)
-        let move = (randomX == randomX_rigth) ? SKAction.moveBy(x: -self.size.width - 80, y: 0, duration: 4)
-        : SKAction.moveBy(x: self.size.width + 80, y: 0, duration: 4)
-        
-        
-        let remove = SKAction.removeFromParent()
-        wind.run(SKAction.sequence([move, remove]))
-        
+
+        let distance = self.size.width + wind.size.width + 80
+        let dx = fromLeft ? distance : -distance
+        let duration: TimeInterval = 4.0
+        wind.run(.sequence([.moveBy(x: dx, y: 0, duration: duration), .removeFromParent()]))
     }
+
 
     private func schedulePowerupSpawns() {
         let seq = SKAction.sequence([
@@ -768,33 +727,42 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private func spawnPowerup() {
         guard powerupCharges == 0, childNode(withName: "powerup") == nil else { return }
-        
+
         let radius: CGFloat = 7
         let minX = radius
         let maxX = size.width - radius
         guard maxX >= minX else { return }
         let x = CGFloat.random(in: minX...maxX)
-        
-        let dot = SKShapeNode(circleOfRadius: radius)
-        dot.fillColor = .cyan
-        dot.strokeColor = .clear
-        dot.position = CGPoint(x: x, y: size.height + radius * 2)
-        dot.name = "powerup"
-        
-        dot.physicsBody = SKPhysicsBody(circleOfRadius: radius)
-        dot.physicsBody?.isDynamic = true
-        dot.physicsBody?.affectedByGravity = false
-        dot.physicsBody?.allowsRotation = false
-        dot.physicsBody?.categoryBitMask = PhysicsCategory.powerup
-        dot.physicsBody?.contactTestBitMask = PhysicsCategory.player
-        dot.physicsBody?.collisionBitMask = PhysicsCategory.none
-        
-        addChild(dot)
-        
+
+        let sprite = SKSpriteNode(imageNamed: "latinha")
+        sprite.size = CGSize(width: radius * 2.5, height: radius * 4.5)
+        sprite.position = CGPoint(x: x, y: size.height + radius * 2)
+        sprite.name = "powerup"
+        sprite.zPosition = 20
+
+        sprite.color = .clear
+//        sprite.colorBlendFactor = 1.0
+
+        // Mesma física de antes
+        sprite.physicsBody = SKPhysicsBody(circleOfRadius: radius)
+        sprite.physicsBody?.isDynamic = true
+        sprite.physicsBody?.affectedByGravity = false
+        sprite.physicsBody?.allowsRotation = false
+        sprite.physicsBody?.categoryBitMask = PhysicsCategory.powerup
+        sprite.physicsBody?.contactTestBitMask = PhysicsCategory.player
+        sprite.physicsBody?.collisionBitMask = PhysicsCategory.none
+
+        addChild(sprite)
+
+        // Mesmo movimento/remoção
         let distance = self.size.height + 120
         let speed: CGFloat = 100
         let duration = TimeInterval(distance / speed)
-        dot.run(.sequence([.moveBy(x: 0, y: -distance, duration: duration), .removeFromParent()]))
+        sprite.run(.sequence([
+            .moveBy(x: 0, y: -distance, duration: duration),
+            .removeFromParent()
+        ]))
+
         run(powerUpSpawnSound)
     }
     
