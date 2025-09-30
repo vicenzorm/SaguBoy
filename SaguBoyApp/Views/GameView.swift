@@ -167,12 +167,7 @@ struct GameView: View {
                 
                 if isGameOver {
                     VStack(spacing: 60) {
-                        Text("Your score: \(points)").foregroundStyle(.white).font(.custom("JetBrainsMonoNL-Regular", size: 16)).bold()
-                        Text("You died").foregroundStyle(.white).font(.custom("JetBrainsMonoNL-Regular", size: 48)).bold()
-                        VStack(spacing: 16) {
-                            Text("press A to play again").foregroundStyle(.white).font(.custom("JetBrainsMonoNL-Regular", size: 16))
-                            Text("press START to return to menu").foregroundStyle(.white).font(.custom("JetBrainsMonoNL-Regular", size: 16))
-                        }
+                            GameOverComponent(numerohighScore: points)
                     }
                     .frame(width: 364, height: 415).background(Color.black.opacity(0.7)).padding([.top, .horizontal], 8)
                 }
