@@ -6,23 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXContainerItemProxy section */
-		F7609F7C2E85B16400FA653E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C58950082E70B9C800D2E4C1 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = C589500F2E70B9C800D2E4C1;
-			remoteInfo = SaguBoyApp;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
 		C58950102E70B9C800D2E4C1 /* SaguBoyApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SaguBoyApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		F7609F782E85B16400FA653E /* SaguBoyAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SaguBoyAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		C56C6E7E2E845D8A002BAB52 /* Exceptions for "SaguBoyApp" folder in "SaguBoyApp" target */ = {
+		E15A860C2E8B23060005CBAC /* Exceptions for "SaguBoyApp" folder in "SaguBoyApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -35,27 +24,15 @@
 		C58950122E70B9C800D2E4C1 /* SaguBoyApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				C56C6E7E2E845D8A002BAB52 /* Exceptions for "SaguBoyApp" folder in "SaguBoyApp" target */,
+				E15A860C2E8B23060005CBAC /* Exceptions for "SaguBoyApp" folder in "SaguBoyApp" target */,
 			);
 			path = SaguBoyApp;
-			sourceTree = "<group>";
-		};
-		F7609F792E85B16400FA653E /* SaguBoyAppTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = SaguBoyAppTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		C589500D2E70B9C800D2E4C1 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F7609F752E85B16400FA653E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -69,7 +46,6 @@
 			isa = PBXGroup;
 			children = (
 				C58950122E70B9C800D2E4C1 /* SaguBoyApp */,
-				F7609F792E85B16400FA653E /* SaguBoyAppTests */,
 				C58950112E70B9C800D2E4C1 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -78,7 +54,6 @@
 			isa = PBXGroup;
 			children = (
 				C58950102E70B9C800D2E4C1 /* SaguBoyApp.app */,
-				F7609F782E85B16400FA653E /* SaguBoyAppTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -108,29 +83,6 @@
 			productReference = C58950102E70B9C800D2E4C1 /* SaguBoyApp.app */;
 			productType = "com.apple.product-type.application";
 		};
-		F7609F772E85B16400FA653E /* SaguBoyAppTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = F7609F7E2E85B16400FA653E /* Build configuration list for PBXNativeTarget "SaguBoyAppTests" */;
-			buildPhases = (
-				F7609F742E85B16400FA653E /* Sources */,
-				F7609F752E85B16400FA653E /* Frameworks */,
-				F7609F762E85B16400FA653E /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				F7609F7D2E85B16400FA653E /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				F7609F792E85B16400FA653E /* SaguBoyAppTests */,
-			);
-			name = SaguBoyAppTests;
-			packageProductDependencies = (
-			);
-			productName = SaguBoyAppTests;
-			productReference = F7609F782E85B16400FA653E /* SaguBoyAppTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -138,15 +90,11 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2600;
+				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
 					C589500F2E70B9C800D2E4C1 = {
 						CreatedOnToolsVersion = 16.4;
-					};
-					F7609F772E85B16400FA653E = {
-						CreatedOnToolsVersion = 26.0.1;
-						TestTargetID = C589500F2E70B9C800D2E4C1;
 					};
 				};
 			};
@@ -165,20 +113,12 @@
 			projectRoot = "";
 			targets = (
 				C589500F2E70B9C800D2E4C1 /* SaguBoyApp */,
-				F7609F772E85B16400FA653E /* SaguBoyAppTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		C589500E2E70B9C800D2E4C1 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F7609F762E85B16400FA653E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -195,22 +135,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F7609F742E85B16400FA653E /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		F7609F7D2E85B16400FA653E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = C589500F2E70B9C800D2E4C1 /* SaguBoyApp */;
-			targetProxy = F7609F7C2E85B16400FA653E /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		C58950192E70B9C900D2E4C1 /* Debug */ = {
@@ -265,6 +190,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -322,6 +248,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -344,8 +271,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = K7J6QAV9ZN;
+				DONT_GENERATE_INFOPLIST_FILE = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SaguBoyApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -379,8 +308,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = K7J6QAV9ZN;
+				DONT_GENERATE_INFOPLIST_FILE = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SaguBoyApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -402,50 +333,6 @@
 			};
 			name = Release;
 		};
-		F7609F7F2E85B16400FA653E /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = PZH5AQ9Q86;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = academy.SaguBoyAppTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SaguBoyApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SaguBoyApp";
-			};
-			name = Debug;
-		};
-		F7609F802E85B16400FA653E /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = PZH5AQ9Q86;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = academy.SaguBoyAppTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SaguBoyApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SaguBoyApp";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -463,15 +350,6 @@
 			buildConfigurations = (
 				C589501C2E70B9C900D2E4C1 /* Debug */,
 				C589501D2E70B9C900D2E4C1 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		F7609F7E2E85B16400FA653E /* Build configuration list for PBXNativeTarget "SaguBoyAppTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				F7609F7F2E85B16400FA653E /* Debug */,
-				F7609F802E85B16400FA653E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
