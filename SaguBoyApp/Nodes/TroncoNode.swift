@@ -10,8 +10,8 @@ import GameplayKit
 
 class TroncoNode: SKSpriteNode {
     
-    private let desiredSpriteSize = CGSize(width: 78, height: 18)
-    let animationFrameRate = 60.0
+    private let desiredSpriteSize = CGSize(width: 80, height: 30)
+    let animationFrameRate = 12.0
     
     var timePerFrame: TimeInterval {
         1.0 / animationFrameRate
@@ -23,9 +23,9 @@ class TroncoNode: SKSpriteNode {
     init() {
         
         let atlas = SKTextureAtlas(named: "tronco")
-        let firstTexture = atlas.textureNamed(String(format: "tronco%04d", 1))
-        
-        super.init(texture: firstTexture, color: .clear, size: .zero)
+        let first = atlas.textureNamed("tronco0001")
+        first.filteringMode = .nearest
+        super.init(texture: first, color: .clear, size: desiredSpriteSize)
             
         loadTextures()
         
@@ -43,7 +43,7 @@ class TroncoNode: SKSpriteNode {
     
     private func loadTextures() {
         let atlas = SKTextureAtlas(named: "tronco")
-        for i in 2...60 {
+        for i in 1...10 {
             let textureName = String(format: "tronco%04d", i)
             troncoTextures.append(atlas.textureNamed(textureName))
         }

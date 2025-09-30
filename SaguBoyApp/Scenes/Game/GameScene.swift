@@ -19,6 +19,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     var onGameOver: (() -> Void)?
     var onPointsChanged:((Int) -> Void)?
     var onPowerupChanged: ((Int) -> Void)?
+    var onComboScoreChanged: ((Int) -> Void)?
+    var onComboTimerChanged: ((Double) -> Void)?
 
     // MARK: - Player
     private let playerRadius: CGFloat = 30
@@ -26,6 +28,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private let playerMinPoints = 0
     private var playerPoints = 0 { didSet { onPointsChanged?(playerPoints) } }
     private var playerLifes = 3 { didSet { onLivesChanged?(playerLifes) } }
+    private var comboScore = 1 { didSet { onComboScoreChanged?(comboScore); if comboScore == 1 { defaultBonusPoints = 750}} }
+    private var comboTimer: Double = 8.0 { didSet { onComboTimerChanged?(comboTimer) } }
     private let playerMaxLifes = 3
     private(set) var player: PlayerNode!
     
@@ -34,12 +38,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         
     // MARK: - Points
     private let pointsPerSecond = 1000.0
+    private var defaultBonusPoints: Int = 750
     private var timeSinceLastPoint: TimeInterval = 0
     private var isGameRunning = false
 
     // MARK: - Inimigos
     private let spawnIntervalEnemies: TimeInterval = 0.8
-    private let spawnIntervalWind: TimeInterval = 1.5
+    private let spawnIntervalWind: TimeInterval = 2.2
     private let enemyMinYToRemove: CGFloat = -60
     
     // MARK: - Power-up
@@ -220,7 +225,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         // Configura observadores do estado do app
         setupAppStateObservers()
         
-        AudioManager.shared.startBackgroundMusic()
+        AudioManager.shared.playGAMETrack()
     }
     
     // MARK: - Estados do App
@@ -327,44 +332,29 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func restartAllMovements() {
-        // Reinicia movimento dos inimigos
         enumerateChildNodes(withName: "enemy") { node, _ in
             let distance = self.size.height + 120
             let speed: CGFloat = 140
             let duration = TimeInterval(distance / speed)
-            
-            let move = SKAction.moveBy(x: 0, y: -distance, duration: duration)
-            let remove = SKAction.removeFromParent()
-            node.run(.sequence([move, remove]))
+            node.run(.sequence([.moveBy(x: 0, y: -distance, duration: duration), .removeFromParent()]))
         }
-        
-        // Reinicia movimento dos powerups
+
         enumerateChildNodes(withName: "powerup") { node, _ in
             let distance = self.size.height + 120
             let speed: CGFloat = 100
             let duration = TimeInterval(distance / speed)
-            
             node.run(.sequence([.moveBy(x: 0, y: -distance, duration: duration), .removeFromParent()]))
         }
-        
-        // Reinicia movimento dos ventos
-        enumerateChildNodes(withName: "//SKShapeNode") { node, _ in
-            // Verifica se é um vento (pela cor ou outras características)
-            if let shapeNode = node as? SKShapeNode, shapeNode.fillColor == .blue {
-                let distance = self.size.width + 80
-                let duration: TimeInterval = 4
-                
-                // Determina a direção baseada na posição atual
-                let shouldMoveLeft = node.position.x > self.size.width / 2
-                let move = shouldMoveLeft ?
-                    SKAction.moveBy(x: -distance, y: 0, duration: duration) :
-                    SKAction.moveBy(x: distance, y: 0, duration: duration)
-                
-                let remove = SKAction.removeFromParent()
-                node.run(SKAction.sequence([move, remove]))
-            }
+
+        enumerateChildNodes(withName: "wind") { node, _ in
+            let distance = self.size.width + (node.frame.width) + 80
+            let duration: TimeInterval = 4.0
+            let shouldMoveLeft = node.position.x > self.size.width / 2
+            let dx = shouldMoveLeft ? -distance : distance
+            node.run(.sequence([.moveBy(x: dx, y: 0, duration: duration), .removeFromParent()]))
         }
     }
+
     
     // MARK: - Controle de Ações dos Nodes
     private func removeAllActionsFromAllNodes() {
@@ -413,7 +403,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
 
-
     func resetGame() {
         // Para tudo primeiro
         removeAllActions()
@@ -440,11 +429,16 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         invincibleUntil = 0
         lastUpdateTime = 0
         powerupCharges = 0
+        comboScore = 1
         
         // Remove qualquer menu de pausa residual
         hidePauseMenu()
         isPausedMenuActive = false
         wasPausedByAppBackground = false
+        
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.playGAMETrack()
+        }
     }
     
     
@@ -468,7 +462,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let currentTime = CACurrentMediaTime()
         // verifica se o dash está disponível (cooldown)
         if currentTime - lastDashTime >= dashCooldown {
-            let hadEnemyNearby = checkEnemyNearby(radius: 50) // verifica inimigos próximos
+            let hadEnemyNearby = checkEnemyNearby(radius: 70) // verifica inimigos próximos
             performDash(hadEnemyNearby: hadEnemyNearby)
             lastDashTime = currentTime
             if SettingsManager.shared.isSoundEnabled {
@@ -544,15 +538,20 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                 
                 // se havia inimigo próximo E o player não foi atingido, dá pontos bônus
                 if hadEnemyNearby && self.playerLifes > 0 {
-                    let bonus = 5900
+                    var bonus = defaultBonusPoints
+                    bonus += (bonus * comboScore)
                     self.playerPoints += bonus
+                    Task { [weak self] in
+                        guard let self = self else { return }
+                        self.updateComboScore()
+                    }
                     
                     // Som de desvio perfeito
                     self.run(self.perfectDodgeSound)
                     
                     // Feedback visual
                     let label = SKLabelNode(text: "+\(bonus)!")
-                    label.fontSize = 20
+                    label.fontSize = 30
                     label.fontColor = .yellow
                     label.position = self.player.position
                     label.zPosition = 1000 // garante que vai ficar em cima
@@ -594,6 +593,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func showPauseMenu() {
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.muteMusic()
+        }
         isGameRunning = false
         self.isPaused = true
         
@@ -706,12 +708,16 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         optionBackgrounds = []
         isPausedMenuActive = false
         wasPausedByAppBackground = false
+        
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.unmuteMusic()
+        }
     }
     
     // MARK: - Setup
     private func setupPlayer() {
         let atlas = SKTextureAtlas(named: "maincharacter")
-        let playerTexture = atlas.textureNamed("0002")
+        let playerTexture = atlas.textureNamed("0001")
         
         let node = PlayerNode()
         let physicsSize = CGSize(width: 35, height: 65)
@@ -781,16 +787,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         } else {
             switch kind {
             case .round:
-                let imageName = "bolaNeve"
-                let shape = SKSpriteNode(imageNamed: imageName)
-                shape.size = CGSize(width: 18, height: 18)
+                let shape = BolaNode()
+                shape.size = CGSize(width: 30, height: 30)
                 shape.position = pos
                 shape.physicsBody = SKPhysicsBody(circleOfRadius: size.width * 0.5)
                 node = shape
             case .box:
                 let shape = TroncoNode()
                 shape.position = pos
-                shape.size = CGSize(width: 68, height: 18)
                 let rect = CGRect(x: -size.width/2, y: -size.height/2, width: size.width, height: size.height)
                 let path = CGPath(roundedRect: rect, cornerWidth: kind.cornerRadius, cornerHeight: kind.cornerRadius, transform: nil)
                 shape.physicsBody = SKPhysicsBody(polygonFrom: path)
@@ -819,31 +823,26 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private func spawnWind() {
         guard let view = view else { return }
-        
-        var wind: SKShapeNode!
-        let frame = CGSize(width: 10, height: 100)
-        wind = SKShapeNode(rectOf: frame)
-        wind.fillColor = .blue
-        wind.strokeColor = .clear
-        
-        let safeArea = CGFloat(view.safeAreaInsets.top + 100)
-        
-        
-        
-        // Gere o vento dentro da SafeArea (Entre states do jogador e os controles da metade da tela)
-        let randomY = CGFloat.random(in: 50...self.size.height - safeArea)
-        
-        let randomX_rigth = CGFloat(self.size.width + 40)
-        let randomX_left = CGFloat(0)
-        
-        guard let randomX = [randomX_left, randomX_rigth].randomElement() else { return }
-        
-        wind.position = CGPoint(x: randomX, y: randomY)
-        print("RandomX -> ",randomX)
-        
-        // Corpo físico
-        
-        wind.physicsBody = SKPhysicsBody(rectangleOf: frame)
+
+        let safeAreaTop = CGFloat(view.safeAreaInsets.top + 100)
+        let randomY = CGFloat.random(in: 50...self.size.height - safeAreaTop)
+
+        let fromLeft = Bool.random()
+        let asset = fromLeft ? "ventoDir" : "ventoEsq"
+
+        // crie o sprite
+        let wind = SKSpriteNode(imageNamed: asset)
+        wind.name = "wind"
+        wind.zPosition = 5
+        if let tex = wind.texture { tex.filteringMode = .nearest }
+
+        let desiredWindSize = CGSize(width: 45, height: 120)
+        wind.size = desiredWindSize
+
+        let startX = fromLeft ? -wind.size.width/2 - 40 : self.size.width + wind.size.width/2 + 40
+        wind.position = CGPoint(x: startX, y: randomY)
+
+        wind.physicsBody = SKPhysicsBody(rectangleOf: desiredWindSize)
         wind.physicsBody?.isDynamic = true
         wind.physicsBody?.allowsRotation = false
         wind.physicsBody?.categoryBitMask = PhysicsCategory.wind
@@ -853,16 +852,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         
         
         addChild(wind)
-        
-        // Move o vento de forma aleatória (Para direita ou esquerda)
-        let move = (randomX == randomX_rigth) ? SKAction.moveBy(x: -self.size.width - 80, y: 0, duration: 4)
-        : SKAction.moveBy(x: self.size.width + 80, y: 0, duration: 4)
-        
-        
-        let remove = SKAction.removeFromParent()
-        wind.run(SKAction.sequence([move, remove]))
-        
+
+        let distance = self.size.width + wind.size.width + 80
+        let dx = fromLeft ? distance : -distance
+        let duration: TimeInterval = 4.0
+        wind.run(.sequence([.moveBy(x: dx, y: 0, duration: duration), .removeFromParent()]))
     }
+
 
     private func schedulePowerupSpawns() {
         let seq = SKAction.sequence([
@@ -874,33 +870,42 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private func spawnPowerup() {
         guard powerupCharges == 0, childNode(withName: "powerup") == nil else { return }
-        
+
         let radius: CGFloat = 7
         let minX = radius
         let maxX = size.width - radius
         guard maxX >= minX else { return }
         let x = CGFloat.random(in: minX...maxX)
-        
-        let dot = SKShapeNode(circleOfRadius: radius)
-        dot.fillColor = .cyan
-        dot.strokeColor = .clear
-        dot.position = CGPoint(x: x, y: size.height + radius * 2)
-        dot.name = "powerup"
-        
-        dot.physicsBody = SKPhysicsBody(circleOfRadius: radius)
-        dot.physicsBody?.isDynamic = true
-        dot.physicsBody?.affectedByGravity = false
-        dot.physicsBody?.allowsRotation = false
-        dot.physicsBody?.categoryBitMask = PhysicsCategory.powerup
-        dot.physicsBody?.contactTestBitMask = PhysicsCategory.player
-        dot.physicsBody?.collisionBitMask = PhysicsCategory.none
-        
-        addChild(dot)
-        
+
+        let sprite = SKSpriteNode(imageNamed: "latinha")
+        sprite.size = CGSize(width: radius * 2.5, height: radius * 4.5)
+        sprite.position = CGPoint(x: x, y: size.height + radius * 2)
+        sprite.name = "powerup"
+        sprite.zPosition = 20
+
+        sprite.color = .clear
+//        sprite.colorBlendFactor = 1.0
+
+        // Mesma física de antes
+        sprite.physicsBody = SKPhysicsBody(circleOfRadius: radius)
+        sprite.physicsBody?.isDynamic = true
+        sprite.physicsBody?.affectedByGravity = false
+        sprite.physicsBody?.allowsRotation = false
+        sprite.physicsBody?.categoryBitMask = PhysicsCategory.powerup
+        sprite.physicsBody?.contactTestBitMask = PhysicsCategory.player
+        sprite.physicsBody?.collisionBitMask = PhysicsCategory.none
+
+        addChild(sprite)
+
+        // Mesmo movimento/remoção
         let distance = self.size.height + 120
         let speed: CGFloat = 100
         let duration = TimeInterval(distance / speed)
-        dot.run(.sequence([.moveBy(x: 0, y: -distance, duration: duration), .removeFromParent()]))
+        sprite.run(.sequence([
+            .moveBy(x: 0, y: -distance, duration: duration),
+            .removeFromParent()
+        ]))
+
         run(powerUpSpawnSound)
     }
     
@@ -1101,6 +1106,30 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         windNode.physicsBody = nil
      
     }
+    
+    // MARK: - Combo Score
+    @MainActor
+    private func updateComboScore() {
+        let after = SKAction.sequence([
+            .wait(forDuration: 1.0),
+            .run { [weak self] in
+                guard let self = self else { return }
+                let minComboScore = 2.0
+                self.comboScore *= 2
+                self.comboTimer = max(minComboScore, comboTimer / 1.25)
+                print("Combo SCORE -> ", comboScore)
+                print("Combo TIMER -> ", comboTimer)
+            }
+        ])
+        run(after)
+    }
+    
+    func resetCombo() {
+        comboScore = 1
+        comboTimer = 8.0
+        defaultBonusPoints = 750
+    }
+    
     // MARK: - Game Over
     func gameOver() {
         
@@ -1108,6 +1137,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         removeAction(forKey: "spawnLoop")
         removeAction(forKey: "enemyLoop")
         removeAction(forKey: "powerupLoop")
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.playDEFEATTrack()
+        }
         onGameOver?()
     }
     

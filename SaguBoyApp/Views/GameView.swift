@@ -23,6 +23,9 @@ struct GameView: View {
     @State private var points: Int = 0
     @State private var lives: Int = 3
     @State private var powerups: Int = 0
+    @State private var comboScore: Int = 1
+    @State private var comboTimer: Double = 6.0
+
     @State private var isGameOver: Bool = false
     
     @State private var scene: GameScene? = nil
@@ -54,20 +57,32 @@ struct GameView: View {
             }
         }
         .animation(.default, value: currentScreen)
-        .onAppear { gameCenterViewModel.authPlayer() }
+        .onAppear {
+            gameCenterViewModel.authPlayer()
+            // 🔊 Já inicia o tema do menu assim que o app abre
+            if SettingsManager.shared.isSoundEnabled {
+                AudioManager.shared.playMENUTrack()
+            }
+        }
     }
     
     private func prepareAndStartGame() {
         let size = CGSize(width: 364, height: 415)
         let newScene = makeScene(size: size)
+        AudioManager.shared.stopMusic()
         self.scene = newScene
         self.currentScreen = .game
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.playGAMETrack()
+        }
         
         // Garante que o jogo comece não pausado
         self.isGameOver = false
         self.lives = 3
         self.powerups = 0
         self.points = 0
+        self.comboScore = 1
+        self.comboTimer = 8.0
     }
     
     private func makeScene(size: CGSize) -> GameScene {
@@ -79,9 +94,17 @@ struct GameView: View {
             dataViewModel.addScore(value: self.points)
             print(dataViewModel.scores)
             self.isGameOver = true
+            
+            // 🔊 Para música do jogo (ou derrota) e volta para o tema do menu
+            if SettingsManager.shared.isSoundEnabled {
+                AudioManager.shared.stopMusic()
+                AudioManager.shared.playMENUTrack()
+            }
         }
         scene.onPointsChanged = { points in self.points = points }
         scene.onPowerupChanged = { self.powerups = $0 }
+        scene.onComboScoreChanged = { combo in self.comboScore = combo}
+        scene.onComboTimerChanged = { time in self.comboTimer = time}
         return scene
     }
     
@@ -114,11 +137,22 @@ struct GameView: View {
                     .padding(.leading, 77)
                 
                 HStack(spacing: 8) {
-                    Text("Vidas: ").fontWeight(.semibold).foregroundStyle(.white).padding(.leading, 12)
+                    Text("Vidas: ").font(.footnote.monospacedDigit().bold()).foregroundStyle(.white).padding(.leading, 12).font(.system(size: 12))
                     ForEach(0..<lives, id: \.self ) {_ in Image("heart").resizable().renderingMode(.original).frame(width: 12, height: 12) }
-                    Text("Pontos: \(points)").font(.headline.monospacedDigit()).foregroundStyle(.white).padding(6)
-                    Text("Power: \(powerups)/1").font(.headline.monospacedDigit()).foregroundStyle(.white).padding(6)
+                    Text("Pontos: \(points)").font(.footnote.monospacedDigit().bold()).foregroundStyle(.white)
+                    Text("Power: \(powerups)/1").font(.footnote.monospacedDigit().bold()).foregroundStyle(.white)
+                    
+                    if comboScore > 1 {
+                        Text("\(comboScore)X").font(.footnote.monospacedDigit().bold()).foregroundStyle(.yellow)
+                        ProgressBar(duration: comboTimer, restartKey: comboScore) {
+                            scene.resetCombo()
+                                
+                          }
+                        .frame(width: 56)
+                    }
+                    
                 }
+                .padding(.top, 8)
                 
                 if isGameOver {
                     VStack(spacing: 60) {
@@ -175,7 +209,6 @@ struct GameView: View {
     }
     
     private func returnToMenu() {
-        AudioManager.shared.stopMusic()
         isGameOver = false
         lives = 3
         powerups = 0
