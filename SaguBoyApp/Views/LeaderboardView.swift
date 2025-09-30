@@ -30,17 +30,8 @@ struct LeaderboardView: View {
                     .shadow(radius: 8)
                 
                 ZStack {
-                    
-                    GIFView(gifName: "backgroundPlaceholder").scaledToFill().frame(width: 364, height: 415)
-                    
                     VStack(spacing: 16) {
-                        Text("leaderboard")
-                            .font(Font.custom("JetBrainsMonoNL-Regular", size: 30))
-                            .foregroundColor(.white)
-                            .padding(.top, 16)
-                        
-                        Spacer()
-                        
+                                                
                         VStack {
                             if dataViewModel.scores.isEmpty {
                                 Text("No scores yet!")
@@ -53,18 +44,24 @@ struct LeaderboardView: View {
                             }
                         }
                         .padding(.horizontal, 40)
+                        .padding(.top, 110)
                         
                         Spacer()
                         
                         leaderboardRow(for: .back)
-                            .padding(.bottom, 24)
+                            .padding(.bottom, 8)
                     }
                     .padding(.horizontal, 40)
                     
                     Spacer()
                 }
                 .frame(width: 364, height: 415)
-                .clipped()
+                .background(
+                    Image("leaderboardBackground")
+                        .resizable()
+                        .scaledToFill()
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 2, style: .continuous))
                 .padding(.top, 8)
                 .padding(.horizontal, 8)
                 
@@ -108,22 +105,28 @@ struct LeaderboardView: View {
             Spacer()
             Text("\(score)")
         }
-        .font(Font.custom("JetBrainsMonoNL-Regular", size: 22))
-        .foregroundColor(.white)
+        .font(Font.custom("Determination", size: 22))
+        .foregroundStyle(rank == 1 ? Color.orange : .blackBrown)
         .padding(.bottom, 8)
     }
+
     
     @ViewBuilder
     private func leaderboardRow(for option: LeaderboardOption) -> some View {
         let isSelected = viewModel.selectedOption == option
-        Text(String(describing: option))
-            .font(Font.custom("JetBrainsMonoNL-Bold", size: 24))
-            .foregroundStyle(isSelected ? .black : .white)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-                RoundedRectangle(cornerRadius: 4)
-                    .foregroundStyle(isSelected ? Color.white : Color.clear)
-            )
+        Image("leaderboardBackButton")
+            .resizable()
+            .renderingMode(.original)
+            .interpolation(.none)
+            .antialiased(false)
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 130, height: 35)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                viewModel.selectedOption = option
+                if SettingsManager.shared.isHapticsEnabled {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                }
+            }
     }
 }
