@@ -83,7 +83,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Pause Menu
     private var pauseMenu: SKNode?
-    private var pauseOptions: [SKLabelNode] = []
+    private var pauseOptions: [SKSpriteNode] = []
     private var optionBackgrounds: [SKShapeNode] = []
     private var selectedPauseIndex = 0
     private var isPausedMenuActive = false
@@ -619,49 +619,44 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         menu.zPosition = 10000
         
         // Fundo semitransparente
-        let background = SKSpriteNode(color: UIColor.black.withAlphaComponent(0.5), size: size)
+        let background = SKSpriteNode(color: UIColor.black.withAlphaComponent(0.75), size: size)
         background.position = CGPoint(x: size.width/2, y: size.height/2)
         background.zPosition = -1
         menu.addChild(background)
         
-        // Label "Paused"
-        let titleLabel = SKLabelNode(text: "Paused")
-        titleLabel.fontName = "JetBrainsMonoNL-Bold"
-        titleLabel.fontSize = 40
-        titleLabel.position = CGPoint(x: size.width/2, y: size.height/2 + 80)
-        titleLabel.fontColor = .white
-        menu.addChild(titleLabel)
+        // Imagem "Pause" (título) - verifique se o nome da imagem está correto
+        let titleImage = SKSpriteNode(imageNamed: "pauseButton")
+        titleImage.position = CGPoint(x: size.width/2, y: size.height/2 + 50)
+        titleImage.zPosition = 1
+        menu.addChild(titleImage)
         
-        // Opções
-        let options = ["continue", "exit"]
+        // Opções com imagens
+        let options = [
+            ("pauseContinueUnselected", "pauseContinue"),
+            ("pauseExitUnselected", "pauseExit")
+        ]
         pauseOptions = []
-        optionBackgrounds = []
         
-        let totalWidth = CGFloat(options.count - 1) * 150
+        let totalWidth = CGFloat(options.count - 1) * 175 // Mais espaço para imagens
         let startX = size.width/2 - totalWidth/2
-        let baseY = size.height/2 - 20
+        let baseY = size.height/2 - 40
         
-        for (i, title) in options.enumerated() {
-            let xPos = startX + CGFloat(i) * 150
+        for (i, (unselectedImage, selectedImage)) in options.enumerated() {
+            let xPos = startX + CGFloat(i) * 175
             
-            // Retângulo branco
-            let rect = SKShapeNode(rectOf: CGSize(width: 100, height: 30), cornerRadius: 2)
-            rect.fillColor = .white
-            rect.strokeColor = .clear
-            rect.position = CGPoint(x: xPos, y: baseY)
-            rect.zPosition = -1
-            menu.addChild(rect)
-            optionBackgrounds.append(rect)
+            // Cria o botão com a imagem não selecionada inicialmente
+            let button = SKSpriteNode(imageNamed: unselectedImage)
+            button.name = i == 0 ? "continue" : "exit" // Para facilitar identificação
+            button.position = CGPoint(x: xPos, y: baseY)
+            button.zPosition = 1
             
-            // Label do botão
-            let label = SKLabelNode(text: title)
-            label.fontName = "JetBrainsMonoNL-Regular"
-            label.fontSize = 20
-            label.position = CGPoint(x: xPos, y: baseY)
-            label.verticalAlignmentMode = .center
-            label.horizontalAlignmentMode = .center
-            pauseOptions.append(label)
-            menu.addChild(label)
+            // Guarda as informações das texturas para troca fácil
+            button.userData = NSMutableDictionary()
+            button.userData?.setObject(unselectedImage, forKey: "unselected" as NSCopying)
+            button.userData?.setObject(selectedImage, forKey: "selected" as NSCopying)
+            
+            pauseOptions.append(button)
+            menu.addChild(button)
         }
         
         pauseMenu = menu
@@ -673,49 +668,39 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
     private func updatePauseMenuSelection() {
         pauseOptions.forEach { $0.removeAllActions() }
-        optionBackgrounds.forEach { $0.removeAllActions() }
         
-        for (i, label) in pauseOptions.enumerated() {
+        for (i, button) in pauseOptions.enumerated() {
             let isSelected = (i == selectedPauseIndex)
             
-            label.removeAllActions()
-            optionBackgrounds[i].removeAllActions()
+            button.removeAllActions()
+            button.setScale(1.0)
+            button.position.y = size.height/2 - 40
             
-            label.setScale(1.0)
-            optionBackgrounds[i].setScale(1.0)
-            label.position.y = size.height/2 - 20
-            optionBackgrounds[i].position.y = size.height/2 - 20
-            
-            // Atualizar retângulo de fundo
-            optionBackgrounds[i].isHidden = !isSelected
-            
-            if isSelected {
-                // Animação mais simples e controlada
-                let pulseAction = SKAction.sequence([
-                    SKAction.scale(to: 1.1, duration: 0.3),
-                    SKAction.scale(to: 1.0, duration: 0.3)
-                ])
+            if let unselectedImage = button.userData?["unselected"] as? String,
+               let selectedImage = button.userData?["selected"] as? String {
                 
-                label.run(SKAction.repeatForever(pulseAction))
-                optionBackgrounds[i].run(SKAction.repeatForever(pulseAction))
+                // Troca a textura baseada na seleção
+                let textureName = isSelected ? selectedImage : unselectedImage
+                button.texture = SKTexture(imageNamed: textureName)
                 
-                label.fontColor = .black
-                label.fontName = "JetBrainsMonoNL-Bold"
-            } else {
-                label.fontColor = .white
-                label.fontName = "JetBrainsMonoNL-Regular"
+                if isSelected {
+                    // Animação de pulsação para o botão selecionado
+                    let pulseAction = SKAction.sequence([
+                        SKAction.scale(to: 1.1, duration: 0.3),
+                        SKAction.scale(to: 1.0, duration: 0.3)
+                    ])
+                    button.run(SKAction.repeatForever(pulseAction))
+                }
             }
         }
     }
-    
+
     private func hidePauseMenu() {
         pauseOptions.forEach { $0.removeAllActions() }
-        optionBackgrounds.forEach { $0.removeAllActions() }
         
         pauseMenu?.removeFromParent()
         pauseMenu = nil
         pauseOptions = []
-        optionBackgrounds = []
         isPausedMenuActive = false
         wasPausedByAppBackground = false
         
