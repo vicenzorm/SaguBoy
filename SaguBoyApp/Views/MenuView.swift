@@ -27,36 +27,38 @@ struct MenuView: View {
                     .frame(width: 380, height: 476)
                     .shadow(radius: 8)
                 
-                ZStack {
-                    GIFView(gifName: "backgroundPlaceholder").scaledToFill().frame(width: 364, height: 415)
+                ZStack (){
                     
-                    VStack(spacing: 15) {
+                    VStack(spacing: 77) {
                         
-                        Text("v1.0.0")
-                            .font(Font.custom("JetBrainsMonoNL-Regular", size: 20))
-                            .foregroundStyle(.white)
-                            .rotationEffect(Angle(degrees: 20))
-                            .padding(.leading, 180)
-                        
-                        Image("shiro")
+                        Image("menuTitle")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 200)
-                            .padding(.bottom, 30)
+                            .frame(width: 214, height: 66)
+                            .padding(.trailing, 110)
+                            .padding(.top, 40)
+                            
                         
-                        menuOptionText(for: .play)
-                        menuOptionText(for: .settings)
-                        menuOptionText(for: .leaderboard)
+                        VStack {
+                            menuOptionImage(for: .play)
+                            menuOptionImage(for: .settings)
+                            menuOptionImage(for: .leaderboard)
+                        }
+                        .padding(.trailing, 170)
+                        
+                        Spacer()
                     }
                 }
                 .frame(width: 364, height: 415)
                 .background(
-                        GIFView(gifName: "backgroundGIF")
-                        .frame(width: 361, height: 415)
+                    Image("menuBackground")
+                        .resizable()
+                        .scaledToFill()
                 )
+                .clipShape(RoundedRectangle(cornerRadius: 2, style: .continuous))
                 .padding(.top, 8)
                 .padding(.horizontal, 8)
-                                
+                
                 Text("SaguBoy")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.consoleText)
@@ -91,7 +93,7 @@ struct MenuView: View {
         }
         .padding(.top, 8)
         .background(Image("metalico").resizable().scaledToFill()
-        .ignoresSafeArea(.container, edges: .bottom))
+            .ignoresSafeArea(.container, edges: .bottom))
         .background(Color.black)
         .onAppear {
             viewModel.onPlay = onPlay
@@ -101,20 +103,22 @@ struct MenuView: View {
     }
     
     @ViewBuilder
-    private func menuOptionText(for option: MenuOption) -> some View {
+    private func menuOptionImage(for option: MenuOption) -> some View {
         let isSelected = viewModel.selectedOption == option
-        Text(String(describing: option))
-            .font(.custom("JetBrainsMonoNL-Regular", size: 24))
-            .bold()
-            .foregroundStyle(isSelected ? .black : .white)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-                RoundedRectangle(cornerRadius: 4)
-                    .foregroundStyle(isSelected ? Color.white : Color.clear)
-            )
-            .scaleEffect(isSelected ? 1.1 : 1.0)
-            .animation(.bouncy(duration: 0.2), value: viewModel.selectedOption)
+        Image(option.assetName(selected: isSelected))
+            .resizable()
+            .renderingMode(.original)
+            .interpolation(.none)
+            .antialiased(false)
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 150, height: 35)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                viewModel.selectedOption = option
+                if SettingsManager.shared.isHapticsEnabled {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                }
+            }
     }
     
     private func handleDirection(dir: Direction, pressed: Bool) {

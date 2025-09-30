@@ -15,7 +15,7 @@ struct SettingsView: View {
     var onBack: () -> Void
     
     @State private var directionPressed: Direction? = nil
-
+    
     var body: some View {
         VStack(spacing: 0) {
             
@@ -28,29 +28,38 @@ struct SettingsView: View {
                 
                 ZStack {
                     
-                    GIFView(gifName: "backgroundPlaceholder").scaledToFill().frame(width: 364, height: 415)
-                    
                     VStack(spacing: 16) {
-                        Text("settings")
-                            .font(Font.custom("JetBrainsMonoNL-Regular", size: 30))
-                            .foregroundColor(.white)
+                        Image("settingsTitle")
+                            .resizable()
+                            .renderingMode(.original)
+                            .interpolation(.none)
+                            .antialiased(false)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 166, height: 48)
                             .padding(.top, 16)
                         
                         Spacer()
                         
-                        settingOptionRow(for: .sounds, isOn: settings.isSoundEnabled)
-                        settingOptionRow(for: .haptics, isOn: settings.isHapticsEnabled)
+                        VStack(alignment: .trailing, spacing: 0) {
+                            settingOptionImage(for: .sounds)
+                            settingOptionImage(for: .haptics)
+                            
+                            settingOptionImage(for: .back)
+                                .padding(.top, 20)
+                        }
+                        .padding(.bottom, 20)
+                        .padding(.leading, 180)
                         
                         Spacer()
-                        
-                        settingOptionRow(for: .back, isOn: false)
-                            .padding(.bottom, 24)
                     }
-                    .padding(.horizontal, 40)
-                    
-                    Spacer()
                 }
                 .frame(width: 364, height: 415)
+                .background(
+                    Image("settingsBackground")
+                        .resizable()
+                        .scaledToFill()
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 2, style: .continuous))
                 .clipped()
                 .padding(.top, 8)
                 .padding(.horizontal, 8)
@@ -85,44 +94,53 @@ struct SettingsView: View {
         }
         .padding(.top, 8)
         .background(Image("metalico").resizable().scaledToFill()
-        .ignoresSafeArea(.container, edges: .bottom))
+            .ignoresSafeArea(.container, edges: .bottom))
         .background(Color.black)
         .onAppear {
             viewModel.onBack = onBack
         }
     }
     
+    // MARK: - Opção como IMAGEM (mapeia seleção + estado atual do setting)
     @ViewBuilder
-    private func settingOptionRow(for option: SettingsOption, isOn: Bool) -> some View {
+    private func settingOptionImage(for option: SettingsOption) -> some View {
         let isSelected = viewModel.selectedOption == option
-        
-        HStack {
-            Text(String(describing: option))
-                .font(.custom("JetBrainsMonoNL-Regular", size: 22))
-            
-            
-            if option != .back {
-                Spacer()
-                Text(isOn ? "on" : "off")
-                    .font(.custom("JetBrainsMonoNL-Bold", size: 22))
+        Image(assetName(for: option, selected: isSelected))
+            .resizable()
+            .renderingMode(.original)
+            .interpolation(.none)
+            .antialiased(false)
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 150, height: 35)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                viewModel.selectedOption = option
+                if SettingsManager.shared.isHapticsEnabled {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                }
             }
-        }
-        .foregroundStyle(isSelected ? .black : .white)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(
-            RoundedRectangle(cornerRadius: 4)
-                .foregroundStyle(isSelected ? Color.white : Color.clear)
-        )
-        .scaleEffect(isSelected ? 1.1 : 1.0)
-        .animation(.bouncy(duration: 0.2), value: viewModel.selectedOption)
+            .padding(.vertical, 4)
+            .animation(.bouncy(duration: 0.2), value: viewModel.selectedOption)
     }
     
+    private func assetName(for option: SettingsOption, selected: Bool) -> String {
+        switch option {
+        case .sounds:
+            let sel   = selected ? "Enable" : "Disable"
+            let state = settings.isSoundEnabled ? "On" : "Off"
+            return "settingsSound\(sel)\(state)"          // ex.: settingsSoundEnableOn
+        case .haptics:
+            let sel   = selected ? "Enable" : "Disable"
+            let state = settings.isHapticsEnabled ? "On" : "Off"
+            return "settingsHaptics\(sel)\(state)"        // ex.: settingsHapticsDisableOff
+        case .back:
+            return selected ? "settingsBackEnable" : "settingsBackDisable"
+        }
+    }
     private func handleDirection(dir: Direction, pressed: Bool) {
         if pressed {
             if dir == directionPressed { return }
             directionPressed = dir
-            
             switch dir {
             case .up, .upLeft, .upRight:
                 viewModel.navigateUp()
@@ -130,13 +148,10 @@ struct SettingsView: View {
             case .down, .downLeft, .downRight:
                 viewModel.navigateDown()
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            default:
-                break
+            default: break
             }
-        } else {
-            if dir == directionPressed {
-                directionPressed = nil
-            }
+        } else if dir == directionPressed {
+            directionPressed = nil
         }
     }
 }
