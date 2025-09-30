@@ -50,27 +50,11 @@ class PlayerNode: SKNode {
     }
     
     func transitionToAnimation(textures: [SKTexture], fadeDuration: TimeInterval = 0.10) {
-        guard let firstFrame = textures.first else { return }
-        let oldSprite = currentAnimationSprite
-        
-        let newSprite = SKSpriteNode(texture: firstFrame)
-        newSprite.size = desiredSpriteSize
-        newSprite.alpha = 0.0
-        addChild(newSprite)
+        guard let sprite = self.currentAnimationSprite else { return }
         
         let animationAction = SKAction.animate(with: textures, timePerFrame: self.timePerFrame)
-        newSprite.run(.repeatForever(animationAction))
         
-        newSprite.run(.fadeIn(withDuration: fadeDuration))
-        
-        if let oldSprite = oldSprite {
-            oldSprite.run(.sequence([
-                .fadeOut(withDuration: fadeDuration),
-                .removeFromParent()
-            ]))
-        }
-        
-        self.currentAnimationSprite = newSprite
+        sprite.run(.repeatForever(animationAction), withKey: "currentAnimation")
     }
     
     func transitionToStaticSprite(texture: SKTexture?, fadeDuration: TimeInterval = 0.05) {

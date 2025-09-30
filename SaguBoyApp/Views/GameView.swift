@@ -19,6 +19,7 @@ struct GameView: View {
     @Environment(\.modelContext) private var modelContext
     @State var gameCenterViewModel = GameCenterViewModel()
     var dataViewModel: DataViewModel
+    @State private var lastStartTime: Date? = nil
     
     @State private var points: Int = 0
     @State private var lives: Int = 3

@@ -72,12 +72,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Time
     private var lastUpdateTime: TimeInterval = 0
     private var currentTimeCache: TimeInterval = 0
+    private var lastPauseToggleTime: TimeInterval = 0
     
     // MARK: - Propriedades para o sistema de Dash
     private var dashCooldown: TimeInterval = 1.5 // Tempo de recarga do dash
     private var lastDashTime: TimeInterval = 0
     private var isDashing: Bool = false
-    private var dashDuration: TimeInterval = 0.5 // Duração do dash
+    private var dashDuration: TimeInterval = 0.2 // Duração do dash
     private var dashSpeedMultiplier: CGFloat = 3.0 // Multiplicador de velocidade durante o dash
     
     // MARK: - Pause Menu
@@ -307,6 +308,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // 4. Mostra o menu de pausa
         showPauseMenu()
+        
+        activeDirections.removeAll()
     }
 
     private func resumeEntireGame() {
@@ -442,16 +445,37 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     
+    // Em SaguBoyApp/Scenes/Game/GameScene.swift
+
     func handleA(pressed: Bool) {
-        buttonAIsPressed = pressed
+        guard pressed else { return }
         
-        guard pressed, powerupCharges > 0 else { return }
-        if powerupCharges > 0 {
-            run(invicibilitySound)
+        if isPausedMenuActive {
+            let cooldownDuration: TimeInterval = 2.0
+            let currentTime = CACurrentMediaTime()
+            
+            if currentTime - lastPauseToggleTime < cooldownDuration { return }
+            
+            if selectedPauseIndex == 0 {
+                resumeEntireGame()
+                
+                lastPauseToggleTime = CACurrentMediaTime()
+                
+            } else if selectedPauseIndex == 1 {
+                hidePauseMenu()
+                onGameOver?()
+            }
+            
+        } else {
+            buttonAIsPressed = pressed
+            
+            guard powerupCharges > 0 else { return }
+            if powerupCharges > 0 {
+                run(invicibilitySound)
+            }
+            powerupCharges = 0
+            grantPowerInvincibility()
         }
-        powerupCharges = 0
-        grantPowerInvincibility()
-        
     }
     
     func handleB(pressed: Bool) {
@@ -474,23 +498,16 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     func handleStart(pressed: Bool) {
         guard pressed else { return }
         
-        if !isPausedMenuActive {
-            // Abre o pause
-            pauseEntireGame()
-        } else {
-            // Confirma seleção
-            if selectedPauseIndex == 0 {
-                // Continuar - ⚠️ AGORA SÓ AQUI os spawns reiniciam
-                resumeEntireGame()
-            } else if selectedPauseIndex == 1 {
-                // Sair - ⚠️ NÃO reinicia spawns
-                hidePauseMenu()
-                onGameOver?()
-            }
-        }
+        let cooldownDuration: TimeInterval = 2.0
+        let currentTime = CACurrentMediaTime()
         
-        buttonBIsPressed = pressed
-
+        if currentTime - lastPauseToggleTime < cooldownDuration { return }
+        
+        lastPauseToggleTime = currentTimeCache
+        
+        if !isPausedMenuActive {
+            pauseEntireGame()
+        }
     }
     
     /// Verifica se há inimigos próximos do player
@@ -508,7 +525,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 }
     
     private func performDash(hadEnemyNearby: Bool) {
-        // Verificar se o player está se movendo (há direções ativas)
         guard !activeDirections.isEmpty else { return }
         
         isDashing = true
