@@ -265,18 +265,17 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
 
+    // Em SaguBoyApp/Scenes/Game/GameScene.swift
+
     private func appDidBecomeActive() {
-        // ⚠️ REMOVA as chamadas de restart dos spawns daqui!
-        // O controle dos spawns agora fica apenas no handleStart()
-        
-        // Se foi pausado automaticamente ao entrar em background, mantém pausado
-        if wasPausedByAppBackground && !isPausedMenuActive {
-            showPauseMenu()
-        }
-        // Se estava com menu de pausa ativo antes de ir para background, apenas atualiza
-        else if wasPausedByAppBackground && isPausedMenuActive {
-            // Apenas atualiza a seleção, NÃO reinicia spawns
-            updatePauseMenuSelection()
+        if wasPausedByAppBackground {
+            
+            self.isPaused = true
+            
+            if pauseMenu == nil {
+                showPauseMenu()
+            }
+            
         }
     }
 
@@ -326,7 +325,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         // 4. Reinicia movimentos dos nós existentes
-        restartAllMovements()
+//        restartAllMovements()
         
         isGameRunning = true
         wasPausedByAppBackground = false
