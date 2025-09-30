@@ -296,13 +296,10 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func pauseEntireGame() {
         isGameRunning = false
         
+        
         // 1. Pausa a cena principal
         self.isPaused = true
         
-        // 2. Para todas as ações dos nós
-        removeAllActionsFromAllNodes()
-        
-        // 3. ⚠️ PARA os sistemas de spawn também!
         removeAction(forKey: "spawnLoop")
         removeAction(forKey: "powerupLoop")
         
@@ -315,6 +312,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func resumeEntireGame() {
         // 1. Remove menu de pausa
         hidePauseMenu()
+        
         
         // 2. Reativa cena
         self.isPaused = false
@@ -362,7 +360,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Controle de Ações dos Nodes
     private func removeAllActionsFromAllNodes() {
         enumerateChildNodes(withName: "//*") { node, _ in
-            node.removeAllActions() // ✅ Isso SIM para as ações!
+            node.removeAllActions()
         }
     }
 
@@ -451,7 +449,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         guard pressed else { return }
         
         if isPausedMenuActive {
-            let cooldownDuration: TimeInterval = 2.0
+            let cooldownDuration: TimeInterval = 1.0
             let currentTime = CACurrentMediaTime()
             
             if currentTime - lastPauseToggleTime < cooldownDuration { return }
@@ -486,7 +484,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let currentTime = CACurrentMediaTime()
         // verifica se o dash está disponível (cooldown)
         if currentTime - lastDashTime >= dashCooldown {
-            let hadEnemyNearby = checkEnemyNearby(radius: 70) // verifica inimigos próximos
+            let hadEnemyNearby = checkEnemyNearby(radius: 70)
             performDash(hadEnemyNearby: hadEnemyNearby)
             lastDashTime = currentTime
             if SettingsManager.shared.isSoundEnabled {
@@ -498,7 +496,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     func handleStart(pressed: Bool) {
         guard pressed else { return }
         
-        let cooldownDuration: TimeInterval = 2.0
+        let cooldownDuration: TimeInterval = 1.0
         let currentTime = CACurrentMediaTime()
         
         if currentTime - lastPauseToggleTime < cooldownDuration { return }
@@ -675,14 +673,12 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     private func updatePauseMenuSelection() {
-        // Remove todas as animações primeiro para evitar acumulação
         pauseOptions.forEach { $0.removeAllActions() }
         optionBackgrounds.forEach { $0.removeAllActions() }
         
         for (i, label) in pauseOptions.enumerated() {
             let isSelected = (i == selectedPauseIndex)
             
-            // Reseta para estado base antes de aplicar animações
             label.removeAllActions()
             optionBackgrounds[i].removeAllActions()
             
@@ -714,7 +710,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func hidePauseMenu() {
-        // Para todas as animações do menu antes de remover
         pauseOptions.forEach { $0.removeAllActions() }
         optionBackgrounds.forEach { $0.removeAllActions() }
         
@@ -804,7 +799,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             switch kind {
             case .round:
                 let shape = BolaNode()
-                shape.size = CGSize(width: 30, height: 30)
+                shape.size = CGSize(width: 42, height: 42)
                 shape.position = pos
                 shape.physicsBody = SKPhysicsBody(circleOfRadius: size.width * 0.5)
                 node = shape
