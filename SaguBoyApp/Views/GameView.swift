@@ -57,14 +57,24 @@ struct GameView: View {
             }
         }
         .animation(.default, value: currentScreen)
-        .onAppear { gameCenterViewModel.authPlayer() }
+        .onAppear {
+            gameCenterViewModel.authPlayer()
+            // 🔊 Já inicia o tema do menu assim que o app abre
+            if SettingsManager.shared.isSoundEnabled {
+                AudioManager.shared.playMENUTrack()
+            }
+        }
     }
     
     private func prepareAndStartGame() {
         let size = CGSize(width: 364, height: 415)
         let newScene = makeScene(size: size)
+        AudioManager.shared.stopMusic()
         self.scene = newScene
         self.currentScreen = .game
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.playGAMETrack()
+        }
         
         // Garante que o jogo comece não pausado
         self.isGameOver = false
@@ -84,6 +94,12 @@ struct GameView: View {
             dataViewModel.addScore(value: self.points)
             print(dataViewModel.scores)
             self.isGameOver = true
+            
+            // 🔊 Para música do jogo (ou derrota) e volta para o tema do menu
+            if SettingsManager.shared.isSoundEnabled {
+                AudioManager.shared.stopMusic()
+                AudioManager.shared.playMENUTrack()
+            }
         }
         scene.onPointsChanged = { points in self.points = points }
         scene.onPowerupChanged = { self.powerups = $0 }
@@ -193,7 +209,6 @@ struct GameView: View {
     }
     
     private func returnToMenu() {
-        AudioManager.shared.stopMusic()
         isGameOver = false
         lives = 3
         powerups = 0
