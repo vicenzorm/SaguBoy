@@ -783,7 +783,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             switch kind {
             case .round:
                 let shape = BolaNode()
-                shape.size = CGSize(width: 42, height: 42)
+                shape.size = CGSize(width: 56, height: 56)
                 shape.position = pos
                 shape.physicsBody = SKPhysicsBody(circleOfRadius: size.width * 0.5)
                 node = shape

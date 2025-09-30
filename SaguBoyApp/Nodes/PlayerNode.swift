@@ -9,11 +9,11 @@ import GameplayKit
 
 class PlayerNode: SKNode {
     
-    private let desiredSpriteSize = CGSize(width: 64, height: 80) 
+    private let desiredSpriteSize = CGSize(width: 54, height: 84)
     
     private var currentAnimationSprite: SKSpriteNode?
     
-    let animationFrameRate = 12.0
+    let animationFrameRate = 10.0
     
     var timePerFrame: TimeInterval {
         1.0 / animationFrameRate
@@ -94,7 +94,7 @@ class PlayerNode: SKNode {
     
     func loadDown() {
         let atlas = SKTextureAtlas(named: "maincharacter")
-        for i in 1...8 {
+        for i in 1...6 {
             let textureName = String(format: "%04d", i)
             let texture = atlas.textureNamed(textureName)
             texture.filteringMode = .nearest
@@ -104,7 +104,7 @@ class PlayerNode: SKNode {
     
     func loadLeft() {
         let atlas = SKTextureAtlas(named: "maincharacter")
-        for i in 1...8 {
+        for i in 1...6 {
             let textureName = String(format: "%04d", i)
             let texture = atlas.textureNamed(textureName)
             texture.filteringMode = .nearest
@@ -114,7 +114,7 @@ class PlayerNode: SKNode {
     
     func loadRight() {
         let atlas = SKTextureAtlas(named: "maincharacter")
-        for i in 1...8 {
+        for i in 1...6 {
             let textureName = String(format: "%04d", i)
             let texture = atlas.textureNamed(textureName)
             texture.filteringMode = .nearest
@@ -124,7 +124,7 @@ class PlayerNode: SKNode {
     
     func loadUp() {
         let atlas = SKTextureAtlas(named: "maincharacter")
-        for i in 1...8 {
+        for i in 1...6 {
             let textureName = String(format: "%04d", i)
             let texture = atlas.textureNamed(textureName)
             texture.filteringMode = .nearest

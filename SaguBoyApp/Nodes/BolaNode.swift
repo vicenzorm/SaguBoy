@@ -10,8 +10,8 @@ import GameplayKit
 
 class BolaNode: SKSpriteNode {
     
-    private let desiredSpriteSize = CGSize(width: 42, height: 42)
-    let animationFrameRate = 11.0
+    private let desiredSpriteSize = CGSize(width: 56, height: 56)
+    let animationFrameRate = 9.0
     
     var timePerFrame: TimeInterval {
         1.0 / animationFrameRate
