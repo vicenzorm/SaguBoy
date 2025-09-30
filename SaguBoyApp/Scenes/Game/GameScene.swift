@@ -19,6 +19,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     var onGameOver: (() -> Void)?
     var onPointsChanged:((Int) -> Void)?
     var onPowerupChanged: ((Int) -> Void)?
+    var onComboScoreChanged: ((Int) -> Void)?
+    var onComboTimerChanged: ((Double) -> Void)?
 
     // MARK: - Player
     private let playerRadius: CGFloat = 30
@@ -26,6 +28,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private let playerMinPoints = 0
     private var playerPoints = 0 { didSet { onPointsChanged?(playerPoints) } }
     private var playerLifes = 3 { didSet { onLivesChanged?(playerLifes) } }
+    private var comboScore = 1 { didSet { onComboScoreChanged?(comboScore); if comboScore == 1 { defaultBonusPoints = 750}} }
+    private var comboTimer: Double = 8.0 { didSet { onComboTimerChanged?(comboTimer) } }
     private let playerMaxLifes = 3
     private var player: PlayerNode!
     
@@ -34,6 +38,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         
     // MARK: - Points
     private let pointsPerSecond = 1000.0
+    private var defaultBonusPoints: Int = 750
     private var timeSinceLastPoint: TimeInterval = 0
     private var isGameRunning = false
 
@@ -344,6 +349,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         invincibleUntil = 0
         lastUpdateTime = 0
         powerupCharges = 0
+        comboScore = 1
         
         // Remove qualquer menu de pausa residual
         hidePauseMenu()
@@ -366,7 +372,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let currentTime = CACurrentMediaTime()
         // verifica se o dash está disponível (cooldown)
         if currentTime - lastDashTime >= dashCooldown {
-            let hadEnemyNearby = checkEnemyNearby(radius: 50) // verifica inimigos próximos
+            let hadEnemyNearby = checkEnemyNearby(radius: 70) // verifica inimigos próximos
             performDash(hadEnemyNearby: hadEnemyNearby)
             lastDashTime = currentTime
             if SettingsManager.shared.isSoundEnabled {
@@ -439,15 +445,20 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                 
                 // se havia inimigo próximo E o player não foi atingido, dá pontos bônus
                 if hadEnemyNearby && self.playerLifes > 0 {
-                    let bonus = 5900
+                    var bonus = defaultBonusPoints
+                    bonus += (bonus * comboScore)
                     self.playerPoints += bonus
+                    Task { [weak self] in
+                        guard let self = self else { return }
+                        self.updateComboScore()
+                    }
                     
                     // Som de desvio perfeito
                     self.run(self.perfectDodgeSound)
                     
                     // Feedback visual
                     let label = SKLabelNode(text: "+\(bonus)!")
-                    label.fontSize = 20
+                    label.fontSize = 30
                     label.fontColor = .yellow
                     label.position = self.player.position
                     label.zPosition = 1000 // garante que vai ficar em cima
@@ -995,6 +1006,30 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         windNode.physicsBody = nil
      
     }
+    
+    // MARK: - Combo Score
+    @MainActor
+    private func updateComboScore() {
+        let after = SKAction.sequence([
+            .wait(forDuration: 1.0),
+            .run { [weak self] in
+                guard let self = self else { return }
+                let minComboScore = 2.0
+                self.comboScore *= 2
+                self.comboTimer = max(minComboScore, comboTimer / 1.25)
+                print("Combo SCORE -> ", comboScore)
+                print("Combo TIMER -> ", comboTimer)
+            }
+        ])
+        run(after)
+    }
+    
+    func resetCombo() {
+        comboScore = 1
+        comboTimer = 8.0
+        defaultBonusPoints = 750
+    }
+    
     // MARK: - Game Over
     private func gameOver() {
         

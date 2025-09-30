@@ -7,7 +7,7 @@
 
 import Foundation
 import SwiftData
-import SwiftUICore
+import SwiftUI
 import Observation
 
 @Observable
