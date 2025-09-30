@@ -31,7 +31,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var comboScore = 1 { didSet { onComboScoreChanged?(comboScore); if comboScore == 1 { defaultBonusPoints = 750}} }
     private var comboTimer: Double = 8.0 { didSet { onComboTimerChanged?(comboTimer) } }
     private let playerMaxLifes = 3
-    private var player: PlayerNode!
+    private(set) var player: PlayerNode!
     
     // Variável para controlar a velocidade atual (permite modificação)
     private var currentPlayerSpeed: CGFloat = 180
@@ -90,6 +90,105 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Background GIF
     private var backgroundNode: GIFNode?
     
+    // MARK: - Test Variables
+    
+    #if DEBUG
+    var isGameRunningGetter: Bool {
+        return isGameRunning
+    }
+    
+    var activeDirectionsGetter: Set<Direction> {
+        return activeDirections
+    }
+    
+    var restGameGetter: [String: Int] {
+        return ["points": playerMinPoints, "invincibleUntil": Int(invincibleUntil), "lastUpdate": Int(lastUpdateTime), "powerupCharges": powerupCharges]
+    }
+    
+    var pointsGetter: Int { playerPoints }
+    
+    var buttonAIsPressed: Bool = false
+    var buttonBIsPressed: Bool = false
+    
+    var playerSpeedGetter: Int { Int(currentPlayerSpeed) }
+    
+    var currentTimeGetter: Int { Int(currentTimeCache) }
+    var lastUpdateTimeGetter: Int { Int(lastUpdateTime) }
+    
+    #endif
+    
+    // MARK: - Test Functions
+    
+    #if DEBUG
+    
+    func _test_performDash(hadEnemyNearby: Bool) {
+        performDash(hadEnemyNearby: hadEnemyNearby)
+    }
+    
+    func _test_checkEnemyNearby(radius: CGFloat) -> Bool {
+        return checkEnemyNearby(radius: radius)
+    }
+    
+    func _test_setDirection(_ dir: Direction, active: Bool) {
+        setDirection(dir, active: active)
+    }
+    
+    func _test_startGame() {
+       startGame()
+    }
+    
+    func _test_resetGame() {
+       resetGame()
+    }
+    
+    func _test_gameOver() {
+       gameOver()
+    }
+    
+    func _test_handleA(pressed: Bool) {
+       handleA(pressed: pressed)
+    }
+    
+    func _test_handleB(pressed: Bool) {
+        handleB(pressed: pressed)
+
+    }
+    
+    func _test_spawnEnemy() {
+        scheduleSpawns()
+    }
+    
+    
+    func _test_spawnWind() {
+        scheduleSpawns()
+    }
+    
+    func _test_spawnPowerUp() {
+        schedulePowerupSpawns()
+    }
+    
+    func _test_updatePoints(dt: TimeInterval) {
+        updatePoints(dt: dt)
+    }
+    
+    
+    
+    
+    #endif
+
+    
+    init(size: CGSize, testPlayer: PlayerNode? = nil) {
+        super.init(size: size)
+        
+        if let injectedPlayer = testPlayer {
+            self.player = injectedPlayer
+        }
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
+    
     // MARK: - Ciclo de vida
     override func didMove(to view: SKView) {
         
@@ -99,6 +198,17 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         view.showsNodeCount = true
         
         print(Bundle.main.bundlePath)
+
+        startGame()
+    }
+    
+    // MARK: - Público (entrada)
+//    func setDirection(_ dir: Direction, active: Bool) {
+//        if active { activeDirections.insert(dir) } else { activeDirections.remove(dir) }
+//    }
+//    
+    func startGame() {
+
         // Configura o fundo com GIF
         setupGIFBackground()
         scaleMode = .resizeFill
@@ -292,7 +402,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             if active { activeDirections.insert(dir) } else { activeDirections.remove(dir) }
         }
     }
-    
+
     func resetGame() {
         // Para tudo primeiro
         removeAllActions()
@@ -331,16 +441,22 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
+    
     func handleA(pressed: Bool) {
+        buttonAIsPressed = pressed
+        
         guard pressed, powerupCharges > 0 else { return }
         if powerupCharges > 0 {
             run(invicibilitySound)
         }
         powerupCharges = 0
         grantPowerInvincibility()
+        
     }
     
     func handleB(pressed: Bool) {
+        buttonBIsPressed = pressed
+        
         guard pressed else { return }
         
         let currentTime = CACurrentMediaTime()
@@ -372,21 +488,24 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                 onGameOver?()
             }
         }
+        
+        buttonBIsPressed = pressed
+
     }
     
     /// Verifica se há inimigos próximos do player
     private func checkEnemyNearby(radius: CGFloat) -> Bool {
-        var foundEnemy = false
-        enumerateChildNodes(withName: "enemy") { node, stop in
-            let distance = hypot(node.position.x - self.player.position.x,
-                                 node.position.y - self.player.position.y)
-            if distance <= radius {
-                foundEnemy = true
-                stop.pointee = true
-            }
+    var foundEnemy = false
+    enumerateChildNodes(withName: "enemy") { node, stop in
+        let distance = hypot(node.position.x - self.player.position.x,
+                                node.position.y - self.player.position.y)
+        if distance <= radius {
+            foundEnemy = true
+            stop.pointee = true
         }
-        return foundEnemy
     }
+    return foundEnemy
+}
     
     private func performDash(hadEnemyNearby: Bool) {
         // Verificar se o player está se movendo (há direções ativas)
@@ -613,7 +732,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         node.physicsBody?.collisionBitMask = PhysicsCategory.wind
         
         addChild(node)
-        player = node
+        self.player = node
     }
     
     private func scheduleSpawns() {
@@ -729,7 +848,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         wind.physicsBody?.categoryBitMask = PhysicsCategory.wind
         wind.physicsBody?.contactTestBitMask = PhysicsCategory.player
         wind.physicsBody?.collisionBitMask = PhysicsCategory.player
-
+        wind.name = "wind"
+        
+        
         addChild(wind)
 
         let distance = self.size.width + wind.size.width + 80
@@ -1010,7 +1131,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     // MARK: - Game Over
-    private func gameOver() {
+    func gameOver() {
         
         isGameRunning = false
         removeAction(forKey: "spawnLoop")
