@@ -84,7 +84,9 @@ struct SettingsView: View {
                 onA: { pressed in
                     if pressed {
                         viewModel.toggleSelectedOption()
-                        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        if SettingsManager.shared.isHapticsEnabled {
+                            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        }
                     }
                 },
                 onB: { _ in onBack() }, // Botão B para voltar
@@ -128,11 +130,11 @@ struct SettingsView: View {
         case .sounds:
             let sel   = selected ? "Enable" : "Disable"
             let state = settings.isSoundEnabled ? "On" : "Off"
-            return "settingsSound\(sel)\(state)"          // ex.: settingsSoundEnableOn
+            return "settingsSound\(sel)\(state)"
         case .haptics:
             let sel   = selected ? "Enable" : "Disable"
             let state = settings.isHapticsEnabled ? "On" : "Off"
-            return "settingsHaptics\(sel)\(state)"        // ex.: settingsHapticsDisableOff
+            return "settingsHaptics\(sel)\(state)"
         case .back:
             return selected ? "settingsBackEnable" : "settingsBackDisable"
         }
@@ -144,10 +146,14 @@ struct SettingsView: View {
             switch dir {
             case .up, .upLeft, .upRight:
                 viewModel.navigateUp()
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                if SettingsManager.shared.isHapticsEnabled {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                }
             case .down, .downLeft, .downRight:
                 viewModel.navigateDown()
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                if SettingsManager.shared.isHapticsEnabled {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                }
             default: break
             }
         } else if dir == directionPressed {

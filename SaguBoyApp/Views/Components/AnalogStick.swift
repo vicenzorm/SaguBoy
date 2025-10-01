@@ -77,7 +77,9 @@ struct AnalogStick: View {
         }
         .onAppear {
             // Preparar o gerador de feedback para resposta mais rápida
-            feedbackGenerator.prepare()
+            if SettingsManager.shared.isHapticsEnabled {
+                feedbackGenerator.prepare()
+            }
         }
     }
     

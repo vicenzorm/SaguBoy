@@ -448,7 +448,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             
             guard powerupCharges > 0 else { return }
             if powerupCharges > 0 {
-                run(invicibilitySound)
+                if SettingsManager.shared.isSoundEnabled {
+                    run(invicibilitySound)
+                }
             }
             powerupCharges = 0
             grantPowerInvincibility()
@@ -540,7 +542,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                     }
                     
                     // Som de desvio perfeito
-                    self.run(self.perfectDodgeSound)
+                    if SettingsManager.shared.isSoundEnabled {
+                        self.run(self.perfectDodgeSound)
+                    }
                     
                     // Feedback visual
                     let label = SKLabelNode(text: "+\(bonus)!")
@@ -878,7 +882,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             .removeFromParent()
         ]))
 
-        run(powerUpSpawnSound)
+        if SettingsManager.shared.isSoundEnabled {
+            run(powerUpSpawnSound)
+        }
     }
     
     // MARK: - Update loop
