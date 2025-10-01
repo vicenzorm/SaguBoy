@@ -204,10 +204,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     // MARK: - Público (entrada)
-//    func setDirection(_ dir: Direction, active: Bool) {
-//        if active { activeDirections.insert(dir) } else { activeDirections.remove(dir) }
-//    }
-//    
     func startGame() {
 
         // Configura o fundo com GIF
@@ -296,36 +292,27 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         isGameRunning = false
         
         
-        // 1. Pausa a cena principal
         self.isPaused = true
         
         removeAction(forKey: "spawnLoop")
         removeAction(forKey: "powerupLoop")
         
-        // 4. Mostra o menu de pausa
         showPauseMenu()
         
         activeDirections.removeAll()
     }
 
     private func resumeEntireGame() {
-        // 1. Remove menu de pausa
         hidePauseMenu()
         
-        
-        // 2. Reativa cena
         self.isPaused = false
         
-        // 3. ⚠️ SÓ reinicia os spawns se não existirem ações ativas
         if action(forKey: "spawnLoop") == nil {
             scheduleSpawns()
         }
         if action(forKey: "powerupLoop") == nil {
             schedulePowerupSpawns()
         }
-        
-        // 4. Reinicia movimentos dos nós existentes
-//        restartAllMovements()
         
         isGameRunning = true
         wasPausedByAppBackground = false
@@ -376,13 +363,11 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     private func pauseAllAnimations() {
-        // Pausa especificamente as animações do menu de pausa
         pauseOptions.forEach { $0.isPaused = true }
         optionBackgrounds.forEach { $0.isPaused = true }
     }
 
     private func restorePauseMenuAnimations() {
-        // Restaura as animações do menu de pausa ao estado normal
         updatePauseMenuSelection()
     }
     
@@ -398,17 +383,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                 updatePauseMenuSelection()
             }
         } else {
-            // lógica normal do player
             if active { activeDirections.insert(dir) } else { activeDirections.remove(dir) }
         }
     }
 
     func resetGame() {
-        // Para tudo primeiro
         removeAllActions()
         removeAllChildren()
         
-        // Recria o fundo
         setupGIFBackground()
         
         isGameRunning = true
@@ -418,7 +400,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         setupPlayer()
         
-        // ⚠️ SÓ agenda spawns se o jogo estiver rodando
         if isGameRunning {
             scheduleSpawns()
             schedulePowerupSpawns()
@@ -431,7 +412,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         powerupCharges = 0
         comboScore = 1
         
-        // Remove qualquer menu de pausa residual
         hidePauseMenu()
         isPausedMenuActive = false
         wasPausedByAppBackground = false
@@ -618,19 +598,16 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let menu = SKNode()
         menu.zPosition = 10000
         
-        // Fundo semitransparente
         let background = SKSpriteNode(color: UIColor.black.withAlphaComponent(0.75), size: size)
         background.position = CGPoint(x: size.width/2, y: size.height/2)
         background.zPosition = -1
         menu.addChild(background)
         
-        // Imagem "Pause" (título) - verifique se o nome da imagem está correto
         let titleImage = SKSpriteNode(imageNamed: "pauseButton")
         titleImage.position = CGPoint(x: size.width/2, y: size.height/2 + 50)
         titleImage.zPosition = 1
         menu.addChild(titleImage)
         
-        // Opções com imagens
         let options = [
             ("pauseContinueUnselected", "pauseContinue"),
             ("pauseExitUnselected", "pauseExit")
@@ -906,7 +883,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Update loop
     override func update(_ currentTime: TimeInterval) {
-        // NÃO ATUALIZE SE O JOGO ESTIVER PAUSADO
         guard !self.isPaused && isGameRunning else { return }
         
         currentTimeCache = currentTime
