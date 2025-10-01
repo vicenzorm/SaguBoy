@@ -920,6 +920,28 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             
             timeSinceLastPoint -= Double(pointsToAdd) * scoringInterval
         }
+        
+        if (GameCenterViewModel.achievementsStatus["beginner_climber"] != true  &&  playerPoints >= 100000) {
+            
+            GameCenterViewModel.reportAchievement(id: "beginner_climber", percent: 100)
+            GameCenterViewModel.achievementsProgress["beginner_climber"] = 100.0
+            GameCenterViewModel.achievementsStatus["beginner_climber"] = true
+        }
+        
+        if (GameCenterViewModel.achievementsStatus["professional_climber"] != true  &&  playerPoints >= 500000) {
+            
+            GameCenterViewModel.reportAchievement(id: "professional_climber", percent: 100)
+            GameCenterViewModel.achievementsProgress["professional_climber"] = 100.0
+            GameCenterViewModel.achievementsStatus["professional_climber"] = true
+        }
+        
+        if (GameCenterViewModel.achievementsStatus["goat_climber"] != true  &&  playerPoints >= 1000000) {
+            
+            GameCenterViewModel.reportAchievement(id: "goat_climber", percent: 100)
+            GameCenterViewModel.achievementsProgress["goat_climber"] = 100.0
+            GameCenterViewModel.achievementsStatus["goat_climber"] = true
+        }
+        
     }
 
     private func updatePlayer(dt: TimeInterval) {

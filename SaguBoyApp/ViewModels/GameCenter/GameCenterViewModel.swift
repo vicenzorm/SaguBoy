@@ -10,9 +10,11 @@ import Foundation
 @MainActor
 class GameCenterViewModel {
     
-    var isAuthReady: Bool = false
-    var player: GKLocalPlayer?
-    var showAuthSheet: Bool = false
+    private var isAuthReady: Bool = false
+    private var player: GKLocalPlayer?
+    private var showAuthSheet: Bool = false
+    static var achievementsStatus: [String: Bool] = ["beginner_climber": false, "professional_climber": false, "goat_climber": false]
+    static var achievementsProgress: [String: Double] = ["beginner_climber": 0.0, "professional_climber": 0.0, "goat_climber": 0.0]
     
     private var localPlayer: GKLocalPlayer {
         return GKLocalPlayer.local
@@ -51,7 +53,7 @@ class GameCenterViewModel {
         }
     }
     
-    @objc func playerAuthDidChange() {
+    @objc private func playerAuthDidChange() {
         self.isAuthReady = self.localPlayer.isAuthenticated
         self.player = localPlayer.isAuthenticated ? localPlayer : nil
     }
@@ -72,6 +74,32 @@ class GameCenterViewModel {
         } else {
             print("não autenticado")
             return
+        }
+    }
+    
+    static func reportAchievement(id: String, percent: Double, showsBanner: Bool = true) {
+        guard GKLocalPlayer.local.isAuthenticated else { return }
+        
+        GKAchievement.loadAchievements { existing, error in
+            
+            if let error { print("loadAchievements:", error); return }
+            
+            let current = existing?.first(where: {$0.identifier == id})
+            let achievement = current ?? GKAchievement(identifier: id)
+            
+            let newPercent = max(achievement.percentComplete, percent)
+            guard newPercent < 100 || achievement.isCompleted == false else { return }
+            
+            achievement.percentComplete = min(newPercent, 100)
+            achievement.showsCompletionBanner = showsBanner
+            
+//            achievementSta.formIndex(after: &achievementsStatus.startIndex)
+            
+            GKAchievement.report([achievement]) { error in
+                if let error { print("reportAchievement:", error)}
+            }
+            
+            
         }
     }
     
