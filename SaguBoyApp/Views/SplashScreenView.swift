@@ -8,23 +8,15 @@
 import SwiftUI
 import AVKit
 
-struct SplashScreenView: View {
-    private var player: AVPlayer {
-        let url = Bundle.main.url(forResource: "splashScreen", withExtension: "mov")!
-        let player = AVPlayer(url: url)
-        player.isMuted = true       // deixa mudo
-        player.play()               // começa automático
-        return player
-    }
 
-       
+struct SplashScreenView: View {
     
-    
+    @State private var holder = PlayerHolder(resource: "splashScreen", ext: "mov")!
+
     @State private var viewModel = MenuViewModel()
     
-    var onPlay: () -> Void
-    var onSettings: () -> Void
-    var onLeaderboard: () -> Void
+    var onSkip: () -> Void
+
     
     @State private var directionPressed: Direction? = nil
     
@@ -43,12 +35,17 @@ struct SplashScreenView: View {
                     ZStack {
                         Color.black.edgesIgnoringSafeArea(.all)
                         
-                        VideoPlayer(player: player)
-                            .edgesIgnoringSafeArea(.all)
-                            .onAppear {
-                                player.seek(to: .zero)   // começa do início
-                                player.play()
-                            }
+                           VideoPlayerLayerView(player: holder.player)
+                               .ignoresSafeArea()
+                               .onAppear { holder.play() }
+                        
+                            Color.clear
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    holder.stopAndReset()
+                                    onSkip()
+                                }
+                       
                         Spacer()
                         
                     }
@@ -99,9 +96,7 @@ struct SplashScreenView: View {
         .ignoresSafeArea(.container, edges: .bottom))
         .background(Color.black)
         .onAppear {
-            viewModel.onPlay = onPlay
-            viewModel.onSettings = onSettings
-            viewModel.onLeaderboard = onLeaderboard
+
         }
     }
     
@@ -150,3 +145,4 @@ struct SplashScreenView: View {
     
     
 }
+

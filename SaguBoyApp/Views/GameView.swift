@@ -37,14 +37,19 @@ struct GameView: View {
         ZStack {
             switch currentScreen {
             case .splash:
-                SplashScreenView(onPlay: {}, onSettings: {}, onLeaderboard: {})
-                    .transition(.opacity)
-                
-            case .menu:
+                SplashScreenView(onSkip: {
+                  currentScreen = .menu
+                  if SettingsManager.shared.isSoundEnabled {
+                    AudioManager.shared.playMENUTrack()
+                  }
+                })
+                .transition(.opacity)
+
+              case .menu:
                 MenuView(
-                    onPlay: { prepareAndStartGame() },
-                    onSettings: { currentScreen = .settings },
-                    onLeaderboard: { currentScreen = .leaderboard }
+                  onPlay: { prepareAndStartGame() },
+                  onSettings: { currentScreen = .settings },
+                  onLeaderboard: { currentScreen = .leaderboard }
                 )
                 .transition(.opacity)
                 
@@ -70,7 +75,7 @@ struct GameView: View {
         .onAppear {
             gameCenterViewModel.authPlayer()
             // Sai da splash depois de 3 segundos
-            DispatchQueue.main.asyncAfter(deadline: .now() + 14.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 7.120) {
                 self.currentScreen = .menu
                 
                 // 🔊 Já inicia o tema do menu assim que o app abre
@@ -84,12 +89,9 @@ struct GameView: View {
     private func prepareAndStartGame() {
         let size = CGSize(width: 364, height: 415)
         let newScene = makeScene(size: size)
-        AudioManager.shared.stopMusic()
+        //AudioManager.shared.stopMusic()
         self.scene = newScene
         self.currentScreen = .game
-        if SettingsManager.shared.isSoundEnabled {
-            AudioManager.shared.playGAMETrack()
-        }
         
         // Garante que o jogo comece não pausado
         self.isGameOver = false
@@ -110,11 +112,11 @@ struct GameView: View {
             print(dataViewModel.scores)
             self.isGameOver = true
             
-            // 🔊 Para música do jogo (ou derrota) e volta para o tema do menu
-            if SettingsManager.shared.isSoundEnabled {
-                AudioManager.shared.stopMusic()
-                AudioManager.shared.playMENUTrack()
-            }
+            //            // 🔊 Para música do jogo (ou derrota) e volta para o tema do menu
+            //            if SettingsManager.shared.isSoundEnabled {
+            //                AudioManager.shared.stopMusic()
+            //                AudioManager.shared.playMENUTrack()
+            //            }
         }
         scene.onPointsChanged = { points in self.points = points }
         scene.onPowerupChanged = { self.powerups = $0 }
@@ -215,6 +217,15 @@ struct GameView: View {
                             lives = 3
                             powerups = 0
                             points = 0
+                            
+                            // 🔄 PARA a música do jogo e INICIA a do menu
+                            //AudioManager.shared.stopMusic()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                if SettingsManager.shared.isSoundEnabled {
+                                    AudioManager.shared.playMENUTrack()
+                                }
+                            }
+                            
                             currentScreen = .menu
                         }
                     }
@@ -230,6 +241,10 @@ struct GameView: View {
     
     private func resetGame() {
         isGameOver = false
+        //AudioManager.shared.stopMusic()
+//        if SettingsManager.shared.isSoundEnabled {
+//            AudioManager.shared.playGAMETrack()
+//        }
         lives = 3
         powerups = 0
         points = 0
@@ -237,6 +252,12 @@ struct GameView: View {
     }
     
     private func returnToMenu() {
+        
+        //AudioManager.shared.stopMusic()
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.playMENUTrack()
+        }
+        
         isGameOver = false
         lives = 3
         powerups = 0

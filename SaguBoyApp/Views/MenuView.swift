@@ -103,6 +103,8 @@ struct MenuView: View {
             viewModel.onPlay = onPlay
             viewModel.onSettings = onSettings
             viewModel.onLeaderboard = onLeaderboard
+//            AudioManager.shared.stopMusic()
+//            AudioManager.shared.playMENUTrack()
         }
     }
     
