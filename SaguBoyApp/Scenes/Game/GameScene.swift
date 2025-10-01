@@ -221,8 +221,11 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Configura observadores do estado do app
         setupAppStateObservers()
+        //AudioManager.shared.stopMusic()
         
-        AudioManager.shared.playGAMETrack()
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.playGAMETrack()
+        }
     }
     
     // MARK: - Estados do App
@@ -439,6 +442,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                 lastPauseToggleTime = CACurrentMediaTime()
                 
             } else if selectedPauseIndex == 1 {
+                AudioManager.shared.playDEFEATTrack()
                 hidePauseMenu()
                 onGameOver?()
             }

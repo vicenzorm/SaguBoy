@@ -57,9 +57,9 @@ class SettingsViewModel {
         case .sounds:
             SettingsManager.shared.isSoundEnabled.toggle()
             if SettingsManager.shared.isSoundEnabled {
-                AudioManager.shared.playMENUTrack()
+                AudioManager.shared.unmuteMusic()
             } else {
-                AudioManager.shared.stopMusic()
+                AudioManager.shared.muteMusic()
             }
         case .haptics:
             SettingsManager.shared.isHapticsEnabled.toggle()
