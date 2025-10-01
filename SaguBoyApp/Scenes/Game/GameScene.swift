@@ -448,7 +448,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             }
             
         } else {
-            buttonAIsPressed = pressed
+//            buttonAIsPressed = pressed
             
             guard powerupCharges > 0 else { return }
             if powerupCharges > 0 {
@@ -462,7 +462,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func handleB(pressed: Bool) {
-        buttonBIsPressed = pressed
+//        buttonBIsPressed = pressed
         
         guard pressed else { return }
         
