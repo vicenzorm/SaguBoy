@@ -37,14 +37,19 @@ struct GameView: View {
         ZStack {
             switch currentScreen {
             case .splash:
-                SplashScreenView(onPlay: {}, onSettings: {}, onLeaderboard: {})
-                    .transition(.opacity)
-                
-            case .menu:
+                SplashScreenView(onSkip: {
+                  currentScreen = .menu
+                  if SettingsManager.shared.isSoundEnabled {
+                    AudioManager.shared.playMENUTrack()
+                  }
+                })
+                .transition(.opacity)
+
+              case .menu:
                 MenuView(
-                    onPlay: { prepareAndStartGame() },
-                    onSettings: { currentScreen = .settings },
-                    onLeaderboard: { currentScreen = .leaderboard }
+                  onPlay: { prepareAndStartGame() },
+                  onSettings: { currentScreen = .settings },
+                  onLeaderboard: { currentScreen = .leaderboard }
                 )
                 .transition(.opacity)
                 
@@ -70,7 +75,7 @@ struct GameView: View {
         .onAppear {
             gameCenterViewModel.authPlayer()
             // Sai da splash depois de 3 segundos
-            DispatchQueue.main.asyncAfter(deadline: .now() + 14.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 7.120) {
                 self.currentScreen = .menu
                 
                 // 🔊 Já inicia o tema do menu assim que o app abre
