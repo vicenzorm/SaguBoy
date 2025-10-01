@@ -11,7 +11,7 @@ class PlayerNode: SKNode {
     
     private let desiredSpriteSize = CGSize(width: 54, height: 84)
     
-    private var currentAnimationSprite: SKSpriteNode?
+    var currentAnimationSprite: SKSpriteNode?
     
     let animationFrameRate = 10.0
     
@@ -19,7 +19,7 @@ class PlayerNode: SKNode {
         1.0 / animationFrameRate
     }
     var stateMachine: GKStateMachine!
-    var idleTexture: SKTexture?
+    var idleTextures: [SKTexture] = [] // Mude para array
     var leftTextures: [SKTexture] = []
     var upTextures: [SKTexture] = []
     var rightTextures: [SKTexture] = []
@@ -31,14 +31,18 @@ class PlayerNode: SKNode {
         
         loadTextures()
         
+        // Cria o sprite inicial
+        let initialSprite = SKSpriteNode(texture: idleTextures.first)
+        initialSprite.size = desiredSpriteSize
+        addChild(initialSprite)
+        currentAnimationSprite = initialSprite
+        
         stateMachine = GKStateMachine(states: [
             IdleState(player: self),
-            
             DownState(player: self),
             LeftState(player: self),
             RightState(player: self),
             UpState(player: self),
-            
             DashState(player: self)
         ])
         
@@ -85,7 +89,7 @@ class PlayerNode: SKNode {
         loadLeft()
         loadRight()
         loadDash()
-        loadIdle()
+        loadIdle() // Agora carrega múltiplas texturas para idle
     }
     
     func update(deltaTime: TimeInterval) {
@@ -132,17 +136,21 @@ class PlayerNode: SKNode {
         }
     }
     
-    func loadIdle() {
-        let atlas = SKTextureAtlas(named: "maincharacter")
-        let textureName = String(format: "%04d", 1)
-        idleTexture = atlas.textureNamed(textureName)
-        idleTexture?.filteringMode = .nearest
-    }
-    
     func loadDash() {
         let atlas = SKTextureAtlas(named: "maincharacter")
         let textureName = String(format: "%04d", 1)
         dashTexture = atlas.textureNamed(textureName)
         dashTexture?.filteringMode = .nearest
+    }
+    
+    func loadIdle() {
+        let atlas = SKTextureAtlas(named: "maincharacter")
+        // Carrega várias texturas para a animação idle
+        for i in 1...6 {
+            let textureName = String(format: "%04d", i)
+            let texture = atlas.textureNamed(textureName)
+            texture.filteringMode = .nearest
+            idleTextures.append(texture)
+        }
     }
 }

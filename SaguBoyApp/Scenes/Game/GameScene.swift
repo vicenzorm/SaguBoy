@@ -90,6 +90,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Background GIF
     private var backgroundNode: GIFNode?
+    private var snowNode: GIFNode?
     
     // MARK: - Test Variables
     
@@ -205,6 +206,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Público (entrada)
     func startGame() {
+        // Configura o efeito de neve por cima de tudo (cpa a gnt implemente no futuro, vou deixar por aqui)
+        ///setupSnowEffect()
 
         // Configura o fundo com GIF
         setupGIFBackground()
@@ -225,6 +228,23 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         
         if SettingsManager.shared.isSoundEnabled {
             AudioManager.shared.playGAMETrack()
+        }
+    }
+    
+    // MARK: - Efeito de Neve
+    private func setupSnowEffect() {
+        // Remove o efeito de neve anterior se existir
+        snowNode?.removeFromParent()
+        
+        // Cria o nó do GIF de neve
+        snowNode = GIFNode(gifName: "snow03", size: size) // Assumindo que o GIF se chama "snowEffect"
+        snowNode?.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        snowNode?.size = CGSize(width: size.width * 1.75, height: size.height * 1.75)
+        snowNode?.zPosition = -999 // Alto zPosition para ficar por cima de tudo, mas abaixo do pause menu (10000)
+        snowNode?.alpha = 0.55 // Ajuste a transparência aqui se necessário (0.0 a 1.0)
+
+        if let snowNode = snowNode {
+            addChild(snowNode)
         }
     }
     
@@ -395,6 +415,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         removeAllChildren()
         
         setupGIFBackground()
+        //setupSnowEffect()
         
         isGameRunning = true
         self.isPaused = false

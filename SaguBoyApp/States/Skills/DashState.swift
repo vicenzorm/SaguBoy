@@ -10,14 +10,17 @@ import GameplayKit
 class DashState: PlayerState {
     
     override func didEnter(from previousState: GKState?) {
-        player.transitionToStaticSprite(texture: player.dashTexture)
+        // Para dash, pode manter estático ou criar animação especial
+        if let dashTexture = player.dashTexture {
+            player.transitionToStaticSprite(texture: dashTexture)
+        }
     }
     
     override func willExit(to nextState: GKState) {
+        // Não precisa remover ações se estiver usando static sprite
     }
     
     override func isValidNextState(_ stateClass: AnyClass) -> Bool {
-        let classIs = (stateClass is IdleState.Type || stateClass is LeftState.Type || stateClass is DownState.Type || stateClass is UpState.Type || stateClass is RightState.Type)
-        return classIs
+        return stateClass != type(of: self)
     }
 }
