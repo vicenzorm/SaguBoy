@@ -198,14 +198,22 @@ struct GameView: View {
                 onDirection: { dir, pressed in scene.setDirection(dir, active: pressed) },
                 onA: { pressed in
                     if pressed {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        if SettingsManager.shared.isHapticsEnabled {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        }
                         if isGameOver { resetGame() } else { scene.handleA(pressed: pressed) }
                     }
                 },
-                onB: { pressed in if pressed { scene.handleB(pressed: pressed); UIImpactFeedbackGenerator(style: .medium).impactOccurred() } },
+                onB: { pressed in if pressed { scene.handleB(pressed: pressed);
+                    if SettingsManager.shared.isHapticsEnabled {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    }
+                } },
                 onStart: { pressed in
                     if pressed {
-                        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        if SettingsManager.shared.isHapticsEnabled {
+                            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        }
                         scene.handleStart(pressed: pressed)
                         if isGameOver {
                             isGameOver = false
