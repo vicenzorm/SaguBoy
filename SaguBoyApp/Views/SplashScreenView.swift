@@ -78,14 +78,18 @@ struct SplashScreenView: View {
                 onA: { pressed in
                     if pressed {
                         viewModel.selectCurrentOption()
-                        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        if SettingsManager.shared.isHapticsEnabled {
+                            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        }
                     }
                 },
                 onB: { _ in },
                 onStart: { pressed in
                     if pressed {
                         viewModel.selectCurrentOption()
-                        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        if SettingsManager.shared.isHapticsEnabled {
+                            UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        }
                     }
                 }
             )
@@ -126,10 +130,14 @@ struct SplashScreenView: View {
             switch dir {
             case .up, .upLeft, .upRight:
                 viewModel.navigateUp()
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                if SettingsManager.shared.isHapticsEnabled {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                }
             case .down, .downLeft, .downRight:
                 viewModel.navigateDown()
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                if SettingsManager.shared.isHapticsEnabled {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                }
             default:
                 break
             }
