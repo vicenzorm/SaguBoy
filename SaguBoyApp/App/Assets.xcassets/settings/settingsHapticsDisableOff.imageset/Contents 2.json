@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "hapticsUSOFF.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

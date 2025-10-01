@@ -38,18 +38,18 @@ struct GameView: View {
             switch currentScreen {
             case .splash:
                 SplashScreenView(onSkip: {
-                  currentScreen = .menu
-                  if SettingsManager.shared.isSoundEnabled {
-                    AudioManager.shared.playMENUTrack()
-                  }
+                    currentScreen = .menu
+                    if SettingsManager.shared.isSoundEnabled {
+                        AudioManager.shared.playMENUTrack()
+                    }
                 })
                 .transition(.opacity)
-
-              case .menu:
+                
+            case .menu:
                 MenuView(
-                  onPlay: { prepareAndStartGame() },
-                  onSettings: { currentScreen = .settings },
-                  onLeaderboard: { currentScreen = .leaderboard }
+                    onPlay: { prepareAndStartGame() },
+                    onSettings: { currentScreen = .settings },
+                    onLeaderboard: { currentScreen = .leaderboard }
                 )
                 .transition(.opacity)
                 
@@ -75,7 +75,7 @@ struct GameView: View {
         .onAppear {
             gameCenterViewModel.authPlayer()
             // Sai da splash depois de 3 segundos
-            DispatchQueue.main.asyncAfter(deadline: .now() + 7.60) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 7.510) {
                 self.currentScreen = .menu
                 
                 // 🔊 Já inicia o tema do menu assim que o app abre
@@ -178,6 +178,14 @@ struct GameView: View {
                             .frame(width: 16, height: 20)
                     }
                     .padding(.leading, 4)
+                    
+                    if comboScore > 1 {
+                        ProgressBar(isHidden: true, duration: comboTimer, restartKey: "\(comboScore)-\(comboTimer)") {
+                            
+                            scene.resetCombo()
+                            
+                        }
+                    }
                 }
                 .padding()
                 
@@ -242,9 +250,9 @@ struct GameView: View {
     private func resetGame() {
         isGameOver = false
         //AudioManager.shared.stopMusic()
-//        if SettingsManager.shared.isSoundEnabled {
-//            AudioManager.shared.playGAMETrack()
-//        }
+        //        if SettingsManager.shared.isSoundEnabled {
+        //            AudioManager.shared.playGAMETrack()
+        //        }
         lives = 3
         powerups = 0
         points = 0
