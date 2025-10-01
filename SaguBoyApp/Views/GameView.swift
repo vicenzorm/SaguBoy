@@ -8,6 +8,7 @@ import SpriteKit
 import SwiftData
 
 enum Screen {
+    case splash
     case menu
     case settings
     case game
@@ -26,30 +27,38 @@ struct GameView: View {
     @State private var powerups: Int = 0
     @State private var comboScore: Int = 1
     @State private var comboTimer: Double = 6.0
-
+    
     @State private var isGameOver: Bool = false
     
     @State private var scene: GameScene? = nil
-    @State private var currentScreen: Screen = .menu
+    @State private var currentScreen: Screen = .splash
     
     var body: some View {
         ZStack {
             switch currentScreen {
+            case .splash:
+                SplashScreenView(onPlay: {}, onSettings: {}, onLeaderboard: {})
+                    .transition(.opacity)
+                
             case .menu:
                 MenuView(
                     onPlay: { prepareAndStartGame() },
                     onSettings: { currentScreen = .settings },
-                    onLeaderboard: { currentScreen = .leaderboard } // <-- Adicionado
+                    onLeaderboard: { currentScreen = .leaderboard }
                 )
                 .transition(.opacity)
+                
             case .settings:
                 SettingsView(onBack: { returnToMenu() })
                     .transition(.opacity)
+                
             case .leaderboard:
                 LeaderboardView(
                     dataViewModel: dataViewModel,
                     onBack: { returnToMenu() }
                 )
+                .transition(.opacity)
+                
             case .game:
                 if let scene = scene {
                     gameplayView(scene: scene)
@@ -57,12 +66,17 @@ struct GameView: View {
                 }
             }
         }
-        .animation(.default, value: currentScreen)
+        .animation(.easeOut(duration: 1.0), value: currentScreen)
         .onAppear {
             gameCenterViewModel.authPlayer()
-            // 🔊 Já inicia o tema do menu assim que o app abre
-            if SettingsManager.shared.isSoundEnabled {
-                AudioManager.shared.playMENUTrack()
+            // Sai da splash depois de 3 segundos
+            DispatchQueue.main.asyncAfter(deadline: .now() + 14.0) {
+                self.currentScreen = .menu
+                
+                // 🔊 Já inicia o tema do menu assim que o app abre
+                if SettingsManager.shared.isSoundEnabled {
+                    AudioManager.shared.playMENUTrack()
+                }
             }
         }
     }
@@ -167,7 +181,7 @@ struct GameView: View {
                 
                 if isGameOver {
                     VStack(spacing: 60) {
-                            GameOverComponent(numerohighScore: points)
+                        GameOverComponent(numerohighScore: points)
                     }
                     .frame(width: 364, height: 415).background(Color.black.opacity(0.7)).padding([.top, .horizontal], 8)
                 }
@@ -201,7 +215,7 @@ struct GameView: View {
         }
         .padding(.top, 8)
         .background(Image("metalico").resizable().scaledToFill()
-        .ignoresSafeArea(.container, edges: .bottom))
+            .ignoresSafeArea(.container, edges: .bottom))
         .background(Color.black)
         
     }
