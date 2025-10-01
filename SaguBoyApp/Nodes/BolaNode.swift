@@ -10,8 +10,8 @@ import GameplayKit
 
 class BolaNode: SKSpriteNode {
     
-    private let desiredSpriteSize = CGSize(width: 35, height: 35)
-    let animationFrameRate = 12.0
+    private let desiredSpriteSize = CGSize(width: 56, height: 56)
+    let animationFrameRate = 9.0
     
     var timePerFrame: TimeInterval {
         1.0 / animationFrameRate
@@ -33,7 +33,7 @@ class BolaNode: SKSpriteNode {
             NeveState(bola: self)
         ])
         
-        stateMachine.enter(TroncoState.self)
+        stateMachine.enter(NeveState.self)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -43,7 +43,7 @@ class BolaNode: SKSpriteNode {
     
     private func loadTextures() {
         let atlas = SKTextureAtlas(named: "bolaNeve")
-        for i in 1...10 {
+        for i in 1...11 {
             let textureName = String(format: "bola%04d", i)
             bolaTextures.append(atlas.textureNamed(textureName))
         }

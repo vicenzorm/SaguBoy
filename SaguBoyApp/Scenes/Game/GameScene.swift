@@ -19,6 +19,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     var onGameOver: (() -> Void)?
     var onPointsChanged:((Int) -> Void)?
     var onPowerupChanged: ((Int) -> Void)?
+    var onComboScoreChanged: ((Int) -> Void)?
+    var onComboTimerChanged: ((Double) -> Void)?
 
     // MARK: - Player
     private let playerRadius: CGFloat = 30
@@ -26,14 +28,17 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private let playerMinPoints = 0
     private var playerPoints = 0 { didSet { onPointsChanged?(playerPoints) } }
     private var playerLifes = 3 { didSet { onLivesChanged?(playerLifes) } }
+    private var comboScore = 1 { didSet { onComboScoreChanged?(comboScore); if comboScore == 1 { defaultBonusPoints = 750}} }
+    private var comboTimer: Double = 8.0 { didSet { onComboTimerChanged?(comboTimer) } }
     private let playerMaxLifes = 3
-    private var player: PlayerNode!
+    private(set) var player: PlayerNode!
     
     // Variável para controlar a velocidade atual (permite modificação)
     private var currentPlayerSpeed: CGFloat = 180
         
     // MARK: - Points
     private let pointsPerSecond = 1000.0
+    private var defaultBonusPoints: Int = 750
     private var timeSinceLastPoint: TimeInterval = 0
     private var isGameRunning = false
 
@@ -67,23 +72,123 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Time
     private var lastUpdateTime: TimeInterval = 0
     private var currentTimeCache: TimeInterval = 0
+    private var lastPauseToggleTime: TimeInterval = 0
     
     // MARK: - Propriedades para o sistema de Dash
     private var dashCooldown: TimeInterval = 1.5 // Tempo de recarga do dash
     private var lastDashTime: TimeInterval = 0
     private var isDashing: Bool = false
-    private var dashDuration: TimeInterval = 0.5 // Duração do dash
+    private var dashDuration: TimeInterval = 0.2 // Duração do dash
     private var dashSpeedMultiplier: CGFloat = 3.0 // Multiplicador de velocidade durante o dash
     
     // MARK: - Pause Menu
     private var pauseMenu: SKNode?
-    private var pauseOptions: [SKLabelNode] = []
+    private var pauseOptions: [SKSpriteNode] = []
     private var optionBackgrounds: [SKShapeNode] = []
     private var selectedPauseIndex = 0
     private var isPausedMenuActive = false
     
     // MARK: - Background GIF
     private var backgroundNode: GIFNode?
+    
+    // MARK: - Test Variables
+    
+    #if DEBUG
+    var isGameRunningGetter: Bool {
+        return isGameRunning
+    }
+    
+    var activeDirectionsGetter: Set<Direction> {
+        return activeDirections
+    }
+    
+    var restGameGetter: [String: Int] {
+        return ["points": playerMinPoints, "invincibleUntil": Int(invincibleUntil), "lastUpdate": Int(lastUpdateTime), "powerupCharges": powerupCharges]
+    }
+    
+    var pointsGetter: Int { playerPoints }
+    
+    var buttonAIsPressed: Bool = false
+    var buttonBIsPressed: Bool = false
+    
+    var playerSpeedGetter: Int { Int(currentPlayerSpeed) }
+    
+    var currentTimeGetter: Int { Int(currentTimeCache) }
+    var lastUpdateTimeGetter: Int { Int(lastUpdateTime) }
+    
+    #endif
+    
+    // MARK: - Test Functions
+    
+    #if DEBUG
+    
+    func _test_performDash(hadEnemyNearby: Bool) {
+        performDash(hadEnemyNearby: hadEnemyNearby)
+    }
+    
+    func _test_checkEnemyNearby(radius: CGFloat) -> Bool {
+        return checkEnemyNearby(radius: radius)
+    }
+    
+    func _test_setDirection(_ dir: Direction, active: Bool) {
+        setDirection(dir, active: active)
+    }
+    
+    func _test_startGame() {
+       startGame()
+    }
+    
+    func _test_resetGame() {
+       resetGame()
+    }
+    
+    func _test_gameOver() {
+       gameOver()
+    }
+    
+    func _test_handleA(pressed: Bool) {
+       handleA(pressed: pressed)
+    }
+    
+    func _test_handleB(pressed: Bool) {
+        handleB(pressed: pressed)
+
+    }
+    
+    func _test_spawnEnemy() {
+        scheduleSpawns()
+    }
+    
+    
+    func _test_spawnWind() {
+        scheduleSpawns()
+    }
+    
+    func _test_spawnPowerUp() {
+        schedulePowerupSpawns()
+    }
+    
+    func _test_updatePoints(dt: TimeInterval) {
+        updatePoints(dt: dt)
+    }
+    
+    
+    
+    
+    #endif
+
+    
+    init(size: CGSize, testPlayer: PlayerNode? = nil) {
+        super.init(size: size)
+        
+        if let injectedPlayer = testPlayer {
+            self.player = injectedPlayer
+        }
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
     
     // MARK: - Ciclo de vida
     override func didMove(to view: SKView) {
@@ -94,6 +199,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         view.showsNodeCount = true
         
         print(Bundle.main.bundlePath)
+
+        startGame()
+    }
+    
+    // MARK: - Público (entrada)
+    func startGame() {
+
         // Configura o fundo com GIF
         setupGIFBackground()
         scaleMode = .resizeFill
@@ -110,7 +222,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         // Configura observadores do estado do app
         setupAppStateObservers()
         
-        AudioManager.shared.startBackgroundMusic()
+        AudioManager.shared.playGAMETrack()
     }
     
     // MARK: - Estados do App
@@ -149,18 +261,17 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
 
+    // Em SaguBoyApp/Scenes/Game/GameScene.swift
+
     private func appDidBecomeActive() {
-        // ⚠️ REMOVA as chamadas de restart dos spawns daqui!
-        // O controle dos spawns agora fica apenas no handleStart()
-        
-        // Se foi pausado automaticamente ao entrar em background, mantém pausado
-        if wasPausedByAppBackground && !isPausedMenuActive {
-            showPauseMenu()
-        }
-        // Se estava com menu de pausa ativo antes de ir para background, apenas atualiza
-        else if wasPausedByAppBackground && isPausedMenuActive {
-            // Apenas atualiza a seleção, NÃO reinicia spawns
-            updatePauseMenuSelection()
+        if wasPausedByAppBackground {
+            
+            self.isPaused = true
+            
+            if pauseMenu == nil {
+                showPauseMenu()
+            }
+            
         }
     }
 
@@ -180,37 +291,28 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func pauseEntireGame() {
         isGameRunning = false
         
-        // 1. Pausa a cena principal
+        
         self.isPaused = true
         
-        // 2. Para todas as ações dos nós
-        removeAllActionsFromAllNodes()
-        
-        // 3. ⚠️ PARA os sistemas de spawn também!
         removeAction(forKey: "spawnLoop")
         removeAction(forKey: "powerupLoop")
         
-        // 4. Mostra o menu de pausa
         showPauseMenu()
+        
+        activeDirections.removeAll()
     }
 
     private func resumeEntireGame() {
-        // 1. Remove menu de pausa
         hidePauseMenu()
         
-        // 2. Reativa cena
         self.isPaused = false
         
-        // 3. ⚠️ SÓ reinicia os spawns se não existirem ações ativas
         if action(forKey: "spawnLoop") == nil {
             scheduleSpawns()
         }
         if action(forKey: "powerupLoop") == nil {
             schedulePowerupSpawns()
         }
-        
-        // 4. Reinicia movimentos dos nós existentes
-        restartAllMovements()
         
         isGameRunning = true
         wasPausedByAppBackground = false
@@ -244,7 +346,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Controle de Ações dos Nodes
     private func removeAllActionsFromAllNodes() {
         enumerateChildNodes(withName: "//*") { node, _ in
-            node.removeAllActions() // ✅ Isso SIM para as ações!
+            node.removeAllActions()
         }
     }
 
@@ -261,13 +363,11 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     private func pauseAllAnimations() {
-        // Pausa especificamente as animações do menu de pausa
         pauseOptions.forEach { $0.isPaused = true }
         optionBackgrounds.forEach { $0.isPaused = true }
     }
 
     private func restorePauseMenuAnimations() {
-        // Restaura as animações do menu de pausa ao estado normal
         updatePauseMenuSelection()
     }
     
@@ -283,17 +383,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                 updatePauseMenuSelection()
             }
         } else {
-            // lógica normal do player
             if active { activeDirections.insert(dir) } else { activeDirections.remove(dir) }
         }
     }
-    
+
     func resetGame() {
-        // Para tudo primeiro
         removeAllActions()
         removeAllChildren()
         
-        // Recria o fundo
         setupGIFBackground()
         
         isGameRunning = true
@@ -303,7 +400,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         setupPlayer()
         
-        // ⚠️ SÓ agenda spawns se o jogo estiver rodando
         if isGameRunning {
             scheduleSpawns()
             schedulePowerupSpawns()
@@ -314,29 +410,60 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         invincibleUntil = 0
         lastUpdateTime = 0
         powerupCharges = 0
+        comboScore = 1
         
-        // Remove qualquer menu de pausa residual
         hidePauseMenu()
         isPausedMenuActive = false
         wasPausedByAppBackground = false
+        
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.playGAMETrack()
+        }
     }
     
+    
+    // Em SaguBoyApp/Scenes/Game/GameScene.swift
+
     func handleA(pressed: Bool) {
-        guard pressed, powerupCharges > 0 else { return }
-        if powerupCharges > 0 {
-            run(invicibilitySound)
+        guard pressed else { return }
+        
+        if isPausedMenuActive {
+            let cooldownDuration: TimeInterval = 1.0
+            let currentTime = CACurrentMediaTime()
+            
+            if currentTime - lastPauseToggleTime < cooldownDuration { return }
+            
+            if selectedPauseIndex == 0 {
+                resumeEntireGame()
+                
+                lastPauseToggleTime = CACurrentMediaTime()
+                
+            } else if selectedPauseIndex == 1 {
+                hidePauseMenu()
+                onGameOver?()
+            }
+            
+        } else {
+            buttonAIsPressed = pressed
+            
+            guard powerupCharges > 0 else { return }
+            if powerupCharges > 0 {
+                run(invicibilitySound)
+            }
+            powerupCharges = 0
+            grantPowerInvincibility()
         }
-        powerupCharges = 0
-        grantPowerInvincibility()
     }
     
     func handleB(pressed: Bool) {
+        buttonBIsPressed = pressed
+        
         guard pressed else { return }
         
         let currentTime = CACurrentMediaTime()
         // verifica se o dash está disponível (cooldown)
         if currentTime - lastDashTime >= dashCooldown {
-            let hadEnemyNearby = checkEnemyNearby(radius: 50) // verifica inimigos próximos
+            let hadEnemyNearby = checkEnemyNearby(radius: 70)
             performDash(hadEnemyNearby: hadEnemyNearby)
             lastDashTime = currentTime
             if SettingsManager.shared.isSoundEnabled {
@@ -348,38 +475,33 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     func handleStart(pressed: Bool) {
         guard pressed else { return }
         
+        let cooldownDuration: TimeInterval = 1.0
+        let currentTime = CACurrentMediaTime()
+        
+        if currentTime - lastPauseToggleTime < cooldownDuration { return }
+        
+        lastPauseToggleTime = currentTimeCache
+        
         if !isPausedMenuActive {
-            // Abre o pause
             pauseEntireGame()
-        } else {
-            // Confirma seleção
-            if selectedPauseIndex == 0 {
-                // Continuar - ⚠️ AGORA SÓ AQUI os spawns reiniciam
-                resumeEntireGame()
-            } else if selectedPauseIndex == 1 {
-                // Sair - ⚠️ NÃO reinicia spawns
-                hidePauseMenu()
-                onGameOver?()
-            }
         }
     }
     
     /// Verifica se há inimigos próximos do player
     private func checkEnemyNearby(radius: CGFloat) -> Bool {
-        var foundEnemy = false
-        enumerateChildNodes(withName: "enemy") { node, stop in
-            let distance = hypot(node.position.x - self.player.position.x,
-                                 node.position.y - self.player.position.y)
-            if distance <= radius {
-                foundEnemy = true
-                stop.pointee = true
-            }
+    var foundEnemy = false
+    enumerateChildNodes(withName: "enemy") { node, stop in
+        let distance = hypot(node.position.x - self.player.position.x,
+                                node.position.y - self.player.position.y)
+        if distance <= radius {
+            foundEnemy = true
+            stop.pointee = true
         }
-        return foundEnemy
     }
+    return foundEnemy
+}
     
     private func performDash(hadEnemyNearby: Bool) {
-        // Verificar se o player está se movendo (há direções ativas)
         guard !activeDirections.isEmpty else { return }
         
         isDashing = true
@@ -409,15 +531,20 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                 
                 // se havia inimigo próximo E o player não foi atingido, dá pontos bônus
                 if hadEnemyNearby && self.playerLifes > 0 {
-                    let bonus = 5900
+                    var bonus = defaultBonusPoints
+                    bonus += (bonus * comboScore)
                     self.playerPoints += bonus
+                    Task { [weak self] in
+                        guard let self = self else { return }
+                        self.updateComboScore()
+                    }
                     
                     // Som de desvio perfeito
                     self.run(self.perfectDodgeSound)
                     
                     // Feedback visual
                     let label = SKLabelNode(text: "+\(bonus)!")
-                    label.fontSize = 20
+                    label.fontSize = 30
                     label.fontColor = .yellow
                     label.position = self.player.position
                     label.zPosition = 1000 // garante que vai ficar em cima
@@ -459,6 +586,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func showPauseMenu() {
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.muteMusic()
+        }
         isGameRunning = false
         self.isPaused = true
         
@@ -468,50 +598,42 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         let menu = SKNode()
         menu.zPosition = 10000
         
-        // Fundo semitransparente
-        let background = SKSpriteNode(color: UIColor.black.withAlphaComponent(0.5), size: size)
+        let background = SKSpriteNode(color: UIColor.black.withAlphaComponent(0.75), size: size)
         background.position = CGPoint(x: size.width/2, y: size.height/2)
         background.zPosition = -1
         menu.addChild(background)
         
-        // Label "Paused"
-        let titleLabel = SKLabelNode(text: "Paused")
-        titleLabel.fontName = "JetBrainsMonoNL-Bold"
-        titleLabel.fontSize = 40
-        titleLabel.position = CGPoint(x: size.width/2, y: size.height/2 + 80)
-        titleLabel.fontColor = .white
-        menu.addChild(titleLabel)
+        let titleImage = SKSpriteNode(imageNamed: "pauseButton")
+        titleImage.position = CGPoint(x: size.width/2, y: size.height/2 + 50)
+        titleImage.zPosition = 1
+        menu.addChild(titleImage)
         
-        // Opções
-        let options = ["continue", "exit"]
+        let options = [
+            ("pauseContinueUnselected", "pauseContinue"),
+            ("pauseExitUnselected", "pauseExit")
+        ]
         pauseOptions = []
-        optionBackgrounds = []
         
-        let totalWidth = CGFloat(options.count - 1) * 150
+        let totalWidth = CGFloat(options.count - 1) * 175 // Mais espaço para imagens
         let startX = size.width/2 - totalWidth/2
-        let baseY = size.height/2 - 20
+        let baseY = size.height/2 - 40
         
-        for (i, title) in options.enumerated() {
-            let xPos = startX + CGFloat(i) * 150
+        for (i, (unselectedImage, selectedImage)) in options.enumerated() {
+            let xPos = startX + CGFloat(i) * 175
             
-            // Retângulo branco
-            let rect = SKShapeNode(rectOf: CGSize(width: 100, height: 30), cornerRadius: 2)
-            rect.fillColor = .white
-            rect.strokeColor = .clear
-            rect.position = CGPoint(x: xPos, y: baseY)
-            rect.zPosition = -1
-            menu.addChild(rect)
-            optionBackgrounds.append(rect)
+            // Cria o botão com a imagem não selecionada inicialmente
+            let button = SKSpriteNode(imageNamed: unselectedImage)
+            button.name = i == 0 ? "continue" : "exit" // Para facilitar identificação
+            button.position = CGPoint(x: xPos, y: baseY)
+            button.zPosition = 1
             
-            // Label do botão
-            let label = SKLabelNode(text: title)
-            label.fontName = "JetBrainsMonoNL-Regular"
-            label.fontSize = 20
-            label.position = CGPoint(x: xPos, y: baseY)
-            label.verticalAlignmentMode = .center
-            label.horizontalAlignmentMode = .center
-            pauseOptions.append(label)
-            menu.addChild(label)
+            // Guarda as informações das texturas para troca fácil
+            button.userData = NSMutableDictionary()
+            button.userData?.setObject(unselectedImage, forKey: "unselected" as NSCopying)
+            button.userData?.setObject(selectedImage, forKey: "selected" as NSCopying)
+            
+            pauseOptions.append(button)
+            menu.addChild(button)
         }
         
         pauseMenu = menu
@@ -522,55 +644,46 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     private func updatePauseMenuSelection() {
-        // Remove todas as animações primeiro para evitar acumulação
         pauseOptions.forEach { $0.removeAllActions() }
-        optionBackgrounds.forEach { $0.removeAllActions() }
         
-        for (i, label) in pauseOptions.enumerated() {
+        for (i, button) in pauseOptions.enumerated() {
             let isSelected = (i == selectedPauseIndex)
             
-            // Reseta para estado base antes de aplicar animações
-            label.removeAllActions()
-            optionBackgrounds[i].removeAllActions()
+            button.removeAllActions()
+            button.setScale(1.0)
+            button.position.y = size.height/2 - 40
             
-            label.setScale(1.0)
-            optionBackgrounds[i].setScale(1.0)
-            label.position.y = size.height/2 - 20
-            optionBackgrounds[i].position.y = size.height/2 - 20
-            
-            // Atualizar retângulo de fundo
-            optionBackgrounds[i].isHidden = !isSelected
-            
-            if isSelected {
-                // Animação mais simples e controlada
-                let pulseAction = SKAction.sequence([
-                    SKAction.scale(to: 1.1, duration: 0.3),
-                    SKAction.scale(to: 1.0, duration: 0.3)
-                ])
+            if let unselectedImage = button.userData?["unselected"] as? String,
+               let selectedImage = button.userData?["selected"] as? String {
                 
-                label.run(SKAction.repeatForever(pulseAction))
-                optionBackgrounds[i].run(SKAction.repeatForever(pulseAction))
+                // Troca a textura baseada na seleção
+                let textureName = isSelected ? selectedImage : unselectedImage
+                button.texture = SKTexture(imageNamed: textureName)
                 
-                label.fontColor = .black
-                label.fontName = "JetBrainsMonoNL-Bold"
-            } else {
-                label.fontColor = .white
-                label.fontName = "JetBrainsMonoNL-Regular"
+                if isSelected {
+                    // Animação de pulsação para o botão selecionado
+                    let pulseAction = SKAction.sequence([
+                        SKAction.scale(to: 1.1, duration: 0.3),
+                        SKAction.scale(to: 1.0, duration: 0.3)
+                    ])
+                    button.run(SKAction.repeatForever(pulseAction))
+                }
             }
         }
     }
-    
+
     private func hidePauseMenu() {
-        // Para todas as animações do menu antes de remover
         pauseOptions.forEach { $0.removeAllActions() }
-        optionBackgrounds.forEach { $0.removeAllActions() }
         
         pauseMenu?.removeFromParent()
         pauseMenu = nil
         pauseOptions = []
-        optionBackgrounds = []
         isPausedMenuActive = false
         wasPausedByAppBackground = false
+        
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.unmuteMusic()
+        }
     }
     
     // MARK: - Setup
@@ -591,7 +704,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         node.physicsBody?.collisionBitMask = PhysicsCategory.wind
         
         addChild(node)
-        player = node
+        self.player = node
     }
     
     private func scheduleSpawns() {
@@ -647,7 +760,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
             switch kind {
             case .round:
                 let shape = BolaNode()
-                shape.size = CGSize(width: 30, height: 30)
+                shape.size = CGSize(width: 56, height: 56)
                 shape.position = pos
                 shape.physicsBody = SKPhysicsBody(circleOfRadius: size.width * 0.5)
                 node = shape
@@ -707,7 +820,9 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         wind.physicsBody?.categoryBitMask = PhysicsCategory.wind
         wind.physicsBody?.contactTestBitMask = PhysicsCategory.player
         wind.physicsBody?.collisionBitMask = PhysicsCategory.player
-
+        wind.name = "wind"
+        
+        
         addChild(wind)
 
         let distance = self.size.width + wind.size.width + 80
@@ -768,7 +883,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Update loop
     override func update(_ currentTime: TimeInterval) {
-        // NÃO ATUALIZE SE O JOGO ESTIVER PAUSADO
         guard !self.isPaused && isGameRunning else { return }
         
         currentTimeCache = currentTime
@@ -963,13 +1077,40 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         windNode.physicsBody = nil
      
     }
+    
+    // MARK: - Combo Score
+    @MainActor
+    private func updateComboScore() {
+        let after = SKAction.sequence([
+            .wait(forDuration: 1.0),
+            .run { [weak self] in
+                guard let self = self else { return }
+                let minComboScore = 2.0
+                self.comboScore *= 2
+                self.comboTimer = max(minComboScore, comboTimer / 1.25)
+                print("Combo SCORE -> ", comboScore)
+                print("Combo TIMER -> ", comboTimer)
+            }
+        ])
+        run(after)
+    }
+    
+    func resetCombo() {
+        comboScore = 1
+        comboTimer = 8.0
+        defaultBonusPoints = 750
+    }
+    
     // MARK: - Game Over
-    private func gameOver() {
+    func gameOver() {
         
         isGameRunning = false
         removeAction(forKey: "spawnLoop")
         removeAction(forKey: "enemyLoop")
         removeAction(forKey: "powerupLoop")
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.playDEFEATTrack()
+        }
         onGameOver?()
     }
     

@@ -20,22 +20,26 @@ struct GameView: View {
     @Environment(\.modelContext) private var modelContext
     @State var gameCenterViewModel = GameCenterViewModel()
     var dataViewModel: DataViewModel
+    @State private var lastStartTime: Date? = nil
     
     @State private var points: Int = 0
     @State private var lives: Int = 3
     @State private var powerups: Int = 0
+    @State private var comboScore: Int = 1
+    @State private var comboTimer: Double = 6.0
+    
     @State private var isGameOver: Bool = false
     
     @State private var scene: GameScene? = nil
     @State private var currentScreen: Screen = .splash
-
+    
     var body: some View {
         ZStack {
             switch currentScreen {
             case .splash:
                 SplashScreenView()
                     .transition(.opacity)
-
+                
             case .menu:
                 MenuView(
                     onPlay: { prepareAndStartGame() },
@@ -43,18 +47,18 @@ struct GameView: View {
                     onLeaderboard: { currentScreen = .leaderboard }
                 )
                 .transition(.opacity)
-
+                
             case .settings:
                 SettingsView(onBack: { returnToMenu() })
                     .transition(.opacity)
-
+                
             case .leaderboard:
                 LeaderboardView(
                     dataViewModel: dataViewModel,
                     onBack: { returnToMenu() }
                 )
                 .transition(.opacity)
-
+                
             case .game:
                 if let scene = scene {
                     gameplayView(scene: scene)
@@ -68,22 +72,32 @@ struct GameView: View {
             // Sai da splash depois de 3 segundos
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 self.currentScreen = .menu
+                
+                // 🔊 Já inicia o tema do menu assim que o app abre
+                if SettingsManager.shared.isSoundEnabled {
+                    AudioManager.shared.playMENUTrack()
+                }
             }
         }
     }
-
     
     private func prepareAndStartGame() {
         let size = CGSize(width: 364, height: 415)
         let newScene = makeScene(size: size)
+        AudioManager.shared.stopMusic()
         self.scene = newScene
         self.currentScreen = .game
+        if SettingsManager.shared.isSoundEnabled {
+            AudioManager.shared.playGAMETrack()
+        }
         
         // Garante que o jogo comece não pausado
         self.isGameOver = false
         self.lives = 3
         self.powerups = 0
         self.points = 0
+        self.comboScore = 1
+        self.comboTimer = 8.0
     }
     
     private func makeScene(size: CGSize) -> GameScene {
@@ -95,9 +109,17 @@ struct GameView: View {
             dataViewModel.addScore(value: self.points)
             print(dataViewModel.scores)
             self.isGameOver = true
+            
+            // 🔊 Para música do jogo (ou derrota) e volta para o tema do menu
+            if SettingsManager.shared.isSoundEnabled {
+                AudioManager.shared.stopMusic()
+                AudioManager.shared.playMENUTrack()
+            }
         }
         scene.onPointsChanged = { points in self.points = points }
         scene.onPowerupChanged = { self.powerups = $0 }
+        scene.onComboScoreChanged = { combo in self.comboScore = combo}
+        scene.onComboTimerChanged = { time in self.comboTimer = time}
         return scene
     }
     
@@ -129,21 +151,37 @@ struct GameView: View {
                     .padding(.top, 445)
                     .padding(.leading, 77)
                 
-                HStack(spacing: 8) {
-                    Text("Vidas: ").fontWeight(.semibold).foregroundStyle(.white).padding(.leading, 12)
-                    ForEach(0..<lives, id: \.self ) {_ in Image("heart").resizable().renderingMode(.original).frame(width: 12, height: 12) }
-                    Text("Pontos: \(points)").font(.headline.monospacedDigit()).foregroundStyle(.white).padding(6)
-                    Text("Power: \(powerups)/1").font(.headline.monospacedDigit()).foregroundStyle(.white).padding(6)
+                HStack() {
+                    ForEach(0..<3, id: \.self) {
+                        i in Image(i < lives ? "heartFill" : "heartEmpty")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 20, height: 18)
+                    }
+                    
+                    
+                    Text("SCORE: \(points.score9)")
+                        .font(.custom("determination", size: 16))
+                        .foregroundStyle(.white)
+                        .padding(.leading, 8)
+                    
+                    HStack {
+                        Text("POWER UP:")
+                            .font(.custom("determination", size: 16))
+                            .foregroundStyle(.white)
+                        
+                        Image(powerups > 0 ? "latinhaFill" : "latinhaEmpty")
+                            .resizable()
+                            .renderingMode(.original)
+                            .frame(width: 16, height: 20)
+                    }
+                    .padding(.leading, 4)
                 }
+                .padding()
                 
                 if isGameOver {
                     VStack(spacing: 60) {
-                        Text("Your score: \(points)").foregroundStyle(.white).font(.custom("JetBrainsMonoNL-Regular", size: 16)).bold()
-                        Text("You died").foregroundStyle(.white).font(.custom("JetBrainsMonoNL-Regular", size: 48)).bold()
-                        VStack(spacing: 16) {
-                            Text("press A to play again").foregroundStyle(.white).font(.custom("JetBrainsMonoNL-Regular", size: 16))
-                            Text("press START to return to menu").foregroundStyle(.white).font(.custom("JetBrainsMonoNL-Regular", size: 16))
-                        }
+                        GameOverComponent(numerohighScore: points)
                     }
                     .frame(width: 364, height: 415).background(Color.black.opacity(0.7)).padding([.top, .horizontal], 8)
                 }
@@ -191,7 +229,6 @@ struct GameView: View {
     }
     
     private func returnToMenu() {
-        AudioManager.shared.stopMusic()
         isGameOver = false
         lives = 3
         powerups = 0
