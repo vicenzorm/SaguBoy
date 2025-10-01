@@ -75,7 +75,7 @@ struct GameView: View {
         .onAppear {
             gameCenterViewModel.authPlayer()
             // Sai da splash depois de 3 segundos
-            DispatchQueue.main.asyncAfter(deadline: .now() + 7.120) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 7.60) {
                 self.currentScreen = .menu
                 
                 // 🔊 Já inicia o tema do menu assim que o app abre
