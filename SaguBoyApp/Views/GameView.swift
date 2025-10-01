@@ -260,12 +260,6 @@ struct GameView: View {
     }
     
     private func returnToMenu() {
-        
-        //AudioManager.shared.stopMusic()
-        if SettingsManager.shared.isSoundEnabled {
-            AudioManager.shared.playMENUTrack()
-        }
-        
         isGameOver = false
         lives = 3
         powerups = 0
