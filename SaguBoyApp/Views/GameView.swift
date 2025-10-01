@@ -37,7 +37,7 @@ struct GameView: View {
         ZStack {
             switch currentScreen {
             case .splash:
-                SplashScreenView()
+                SplashScreenView(onPlay: {}, onSettings: {}, onLeaderboard: {})
                     .transition(.opacity)
                 
             case .menu:
@@ -70,7 +70,7 @@ struct GameView: View {
         .onAppear {
             gameCenterViewModel.authPlayer()
             // Sai da splash depois de 3 segundos
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 14.0) {
                 self.currentScreen = .menu
                 
                 // 🔊 Já inicia o tema do menu assim que o app abre
