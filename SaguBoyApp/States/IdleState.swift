@@ -10,15 +10,15 @@ import GameplayKit
 class IdleState: PlayerState {
     
     override func didEnter(from previousState: GKState?) {
-        player.transitionToAnimation(textures: player.upTextures)
+        player.transitionToStaticSprite(texture: player.idleTexture)
     }
     
     override func willExit(to nextState: GKState) {
-        player.removeAction(forKey: "idleAnimation")
     }
+    
     override func isValidNextState(_ stateClass: AnyClass) -> Bool {
-        let classIs = (stateClass is UpState.Type || stateClass is LeftState.Type || stateClass is DownState.Type || stateClass is DashState.Type || stateClass is RightState.Type)
+        let classIs = (stateClass is DashState.Type || stateClass is LeftState.Type || stateClass is DownState.Type || stateClass is UpState.Type || stateClass is RightState.Type)
         return classIs
-    } 
+    }
     
 }

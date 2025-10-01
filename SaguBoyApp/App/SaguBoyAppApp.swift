@@ -1,4 +1,3 @@
-//
 //  SaguBoyAppApp.swift
 //  SaguBoyApp
 //
@@ -7,17 +6,25 @@
 import SwiftData
 import SwiftUI
 
+
+
 @main
 struct SaguBoyAppApp: App {
     
-    @Environment(\.modelContext) private var modelContext
+    let container: ModelContainer
+    
+    init() {
+        do {
+            container = try ModelContainer(for: Ponctuation.self)
+        } catch {
+            fatalError("Failed to create ModelContainer for Ponctuation.")
+        }
+    }
     
     var body: some Scene {
         WindowGroup {
-            GameView(dataViewModel: DataViewModel(modelContext: modelContext))
+            GameView(dataViewModel: DataViewModel(modelContext: container.mainContext))
         }
-        .modelContainer(for: [
-            Ponctuation.self
-        ])
+        .modelContainer(container)
     }
 }

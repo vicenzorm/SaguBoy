@@ -13,8 +13,8 @@ class GameCenterViewModel {
     private var isAuthReady: Bool = false
     private var player: GKLocalPlayer?
     private var showAuthSheet: Bool = false
-    static var achievementsStatus: [String: Bool] = ["Beginner": false]
-    static var achievementsProgress: [String: Double] = ["Beginner": 0.0]
+    static var achievementsStatus: [String: Bool] = ["beginner_climber": false, "professional_climber": false, "goat_climber": false]
+    static var achievementsProgress: [String: Double] = ["beginner_climber": 0.0, "professional_climber": 0.0, "goat_climber": 0.0]
     
     private var localPlayer: GKLocalPlayer {
         return GKLocalPlayer.local

@@ -9,15 +9,17 @@ import GameplayKit
 
 class PlayerNode: SKNode {
     
+    private let desiredSpriteSize = CGSize(width: 54, height: 84)
+    
     private var currentAnimationSprite: SKSpriteNode?
     
-    let animationFrameRate = 30.0
+    let animationFrameRate = 10.0
     
     var timePerFrame: TimeInterval {
         1.0 / animationFrameRate
     }
     var stateMachine: GKStateMachine!
-    var idleTextures: [SKTexture] = []
+    var idleTexture: SKTexture?
     var leftTextures: [SKTexture] = []
     var upTextures: [SKTexture] = []
     var rightTextures: [SKTexture] = []
@@ -47,28 +49,12 @@ class PlayerNode: SKNode {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func transitionToAnimation(textures: [SKTexture], fadeDuration: TimeInterval = 0.15) {
-        guard let firstFrame = textures.first else { return }
-        
-        let oldSprite = currentAnimationSprite
-        
-        let newSprite = SKSpriteNode(texture: firstFrame)
-        newSprite.alpha = 0.0
-        addChild(newSprite)
+    func transitionToAnimation(textures: [SKTexture], fadeDuration: TimeInterval = 0.10) {
+        guard let sprite = self.currentAnimationSprite else { return }
         
         let animationAction = SKAction.animate(with: textures, timePerFrame: self.timePerFrame)
-        newSprite.run(.repeatForever(animationAction))
         
-        newSprite.run(.fadeIn(withDuration: fadeDuration))
-        
-        if let oldSprite = oldSprite {
-            oldSprite.run(.sequence([
-                .fadeOut(withDuration: fadeDuration),
-                .removeFromParent()
-            ]))
-        }
-        
-        self.currentAnimationSprite = newSprite
+        sprite.run(.repeatForever(animationAction), withKey: "currentAnimation")
     }
     
     func transitionToStaticSprite(texture: SKTexture?, fadeDuration: TimeInterval = 0.05) {
@@ -77,6 +63,7 @@ class PlayerNode: SKNode {
         let oldSprite = currentAnimationSprite
 
         let newSprite = SKSpriteNode(texture: texture)
+        newSprite.size = desiredSpriteSize
         newSprite.alpha = 0.0
         addChild(newSprite)
 
@@ -95,47 +82,67 @@ class PlayerNode: SKNode {
     private func loadTextures() {
         loadUp()
         loadDown()
-        loadIdle()
         loadLeft()
         loadRight()
+        loadDash()
+        loadIdle()
     }
     
     func update(deltaTime: TimeInterval) {
         stateMachine.update(deltaTime: deltaTime)
     }
     
-    func loadIdle() {
-        let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...30 {
-            idleTextures.append(atlas.textureNamed("up\(i)"))
-        }
-    }
-    
     func loadDown() {
-        let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...30 {
-            downTextures.append(atlas.textureNamed("down\(i)"))
+        let atlas = SKTextureAtlas(named: "maincharacter")
+        for i in 1...6 {
+            let textureName = String(format: "%04d", i)
+            let texture = atlas.textureNamed(textureName)
+            texture.filteringMode = .nearest
+            downTextures.append(texture)
         }
     }
     
     func loadLeft() {
-        let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...30 {
-            leftTextures.append(atlas.textureNamed("left\(i)"))
+        let atlas = SKTextureAtlas(named: "maincharacter")
+        for i in 1...6 {
+            let textureName = String(format: "%04d", i)
+            let texture = atlas.textureNamed(textureName)
+            texture.filteringMode = .nearest
+            leftTextures.append(texture)
         }
     }
     
     func loadRight() {
-        let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...30 {
-            rightTextures.append(atlas.textureNamed("right\(i)"))
+        let atlas = SKTextureAtlas(named: "maincharacter")
+        for i in 1...6 {
+            let textureName = String(format: "%04d", i)
+            let texture = atlas.textureNamed(textureName)
+            texture.filteringMode = .nearest
+            rightTextures.append(texture)
         }
     }
     
     func loadUp() {
-        let atlas = SKTextureAtlas(named: "mainCharacter")
-        for i in 1...30 {
-            upTextures.append(atlas.textureNamed("up\(i)"))
+        let atlas = SKTextureAtlas(named: "maincharacter")
+        for i in 1...6 {
+            let textureName = String(format: "%04d", i)
+            let texture = atlas.textureNamed(textureName)
+            texture.filteringMode = .nearest
+            upTextures.append(texture)
         }
+    }
+    
+    func loadIdle() {
+        let atlas = SKTextureAtlas(named: "maincharacter")
+        let textureName = String(format: "%04d", 1)
+        idleTexture = atlas.textureNamed(textureName)
+        idleTexture?.filteringMode = .nearest
+    }
+    
+    func loadDash() {
+        let atlas = SKTextureAtlas(named: "maincharacter")
+        let textureName = String(format: "%04d", 1)
+        dashTexture = atlas.textureNamed(textureName)
+        dashTexture?.filteringMode = .nearest
     }
 }
