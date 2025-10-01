@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "shiro.png",
+      "filename" : "Logo Light.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "shiro 1.png",
+      "filename" : "Logo Dark.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,7 +25,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "shiro 2.png",
+      "filename" : "Logo Tint.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
