@@ -23,6 +23,7 @@ struct GameView: View {
     @State private var lastStartTime: Date? = nil
     
     @State private var points: Int = 0
+    @State private var timer: Int = 0
     @State private var lives: Int = 3
     @State private var powerups: Int = 0
     @State private var comboScore: Int = 1
@@ -100,6 +101,7 @@ struct GameView: View {
         self.points = 0
         self.comboScore = 1
         self.comboTimer = 8.0
+        self.timer = 0
     }
     
     private func makeScene(size: CGSize) -> GameScene {
@@ -122,6 +124,7 @@ struct GameView: View {
         scene.onPowerupChanged = { self.powerups = $0 }
         scene.onComboScoreChanged = { combo in self.comboScore = combo}
         scene.onComboTimerChanged = { time in self.comboTimer = time}
+        scene.onTimerChanged = {time in self.timer = Int(time)}
         return scene
     }
     

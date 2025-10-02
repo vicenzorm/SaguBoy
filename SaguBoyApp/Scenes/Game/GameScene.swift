@@ -7,6 +7,7 @@
 
 import SpriteKit
 import SwiftUI
+import Combine
 
 final class GameScene: SKScene, SKPhysicsContactDelegate {
     
@@ -21,6 +22,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     var onPowerupChanged: ((Int) -> Void)?
     var onComboScoreChanged: ((Int) -> Void)?
     var onComboTimerChanged: ((Double) -> Void)?
+    var onTimerChanged: ((Int) -> Void)?
 
     // MARK: - Player
     private let playerRadius: CGFloat = 30
@@ -90,6 +92,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Background GIF
     private var backgroundNode: GIFNode?
+    
+    // MARK: - Timer
+    
+    private var counter = 0 {didSet {onTimerChanged?(counter)}}
+    private var isRunningTimer = false
+    private var timerCancellable: AnyCancellable?   // <- não use let local
+
     
     // MARK: - Test Variables
     
@@ -205,7 +214,8 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Público (entrada)
     func startGame() {
-
+        startTimer()
+        
         // Configura o fundo com GIF
         setupGIFBackground()
         scaleMode = .resizeFill
@@ -402,7 +412,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         isDashing = false
 
         setupPlayer()
-        
+        resetTimer()
         if isGameRunning {
             scheduleSpawns()
             schedulePowerupSpawns()
@@ -792,9 +802,17 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         
         addChild(node)
         
-        let distance = self.size.height + 120
-        let speed: CGFloat = 140
-        let duration = TimeInterval(distance / speed)
+        let distance: CGFloat = self.size.height + 120
+        var speed: CGFloat = 140
+        
+        if counter < 100 {
+            let factor: CGFloat = 1.0 + CGFloat(counter) / 1000.0
+            speed *= factor
+        } else if counter > 100 {
+            let factor: CGFloat = 0.5 + CGFloat(counter) / 100.0
+            speed *= factor
+        }
+        let duration = TimeInterval(Double(distance / speed))
         
         let move = SKAction.moveBy(x: 0, y: -distance, duration: duration)
         let remove = SKAction.removeFromParent()
@@ -835,7 +853,16 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         let distance = self.size.width + wind.size.width + 80
         let dx = fromLeft ? distance : -distance
-        let duration: TimeInterval = 4.0
+        var speed: CGFloat = 140
+        
+        if counter < 100 {
+            let factor: CGFloat = 1.0 + CGFloat(counter) / 1000.0
+            speed *= factor
+        } else if counter > 100 {
+            let factor: CGFloat = 0.5 + CGFloat(counter) / 100.0
+            speed *= factor
+        }
+        let duration = TimeInterval(distance / speed)
         wind.run(.sequence([.moveBy(x: dx, y: 0, duration: duration), .removeFromParent()]))
     }
 
@@ -879,7 +906,15 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         // Mesmo movimento/remoção
         let distance = self.size.height + 120
-        let speed: CGFloat = 100
+        var speed: CGFloat = 140
+        
+        if counter < 100 {
+            let factor: CGFloat = 1.0 + CGFloat(counter) / 1000.0
+            speed *= factor
+        } else if counter > 100 {
+            let factor: CGFloat = 0.5 + CGFloat(counter) / 100.0
+            speed *= factor
+        }
         let duration = TimeInterval(distance / speed)
         sprite.run(.sequence([
             .moveBy(x: 0, y: -distance, duration: duration),
@@ -910,6 +945,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private func updatePoints(dt: TimeInterval) {
         guard isGameRunning && !self.isPaused else { return }  // ← Adicione verificação de pausa
+        print(counter)
         timeSinceLastPoint += dt
         let scoringInterval = 1.0 / pointsPerSecond
         if timeSinceLastPoint >= scoringInterval {
@@ -1145,6 +1181,35 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         onGameOver?()
     }
+    
+    // MARK: - Timer functions
+    
+    func startTimer() {
+            guard !isRunningTimer else { return }
+            isRunningTimer = true
+
+            // publisher no main runloop, em .common (não pausa com interações)
+            timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
+                .autoconnect()
+                .sink { [weak self] _ in
+                    guard let self else { return }
+                    self.counter += 1
+                    // debug:
+                    print("TIMER:", self.counter)
+                }
+        }
+
+        func stopTimer() {
+            timerCancellable?.cancel()
+            timerCancellable = nil
+            isRunningTimer = false
+        }
+
+        func resetTimer() {
+            stopTimer()
+            counter = 0
+            print("TIMER resetado para 0")
+        }
     
     // MARK: - Cleanup
     deinit {
