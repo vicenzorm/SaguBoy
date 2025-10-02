@@ -16,7 +16,7 @@ struct VideoPlayerLayerView: UIViewRepresentable {
         let view = UIView(frame: .zero)
         
         let playerLayer = AVPlayerLayer(player: player)
-        playerLayer.videoGravity = .resizeAspectFill  // ou .resizeAspect se quiser sem corte
+        playerLayer.videoGravity = .resizeAspectFill
         playerLayer.frame = view.bounds
         
         view.layer.addSublayer(playerLayer)
@@ -51,7 +51,7 @@ final class PlayerHolder {
         let queue = AVQueuePlayer(items: [item])
         self.player = queue
 
-        self.looper = AVPlayerLooper(player: queue, templateItem: item)
+//        self.looper = AVPlayerLooper(player: queue, templateItem: item)
 
         self.player.isMuted = true
         self.player.seek(to: .zero)
